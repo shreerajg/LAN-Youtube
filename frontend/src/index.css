@@ -575,6 +575,36 @@ body {
   }
 }
 
+/* ── Page Transitions ── */
+@keyframes pageIn {
+    0% {
+        opacity: 0;
+        transform: translateY(12px) scale(0.98);
+        filter: blur(4px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+    }
+}
+
+@keyframes pageOut {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.98);
+    }
+}
+
+.page-wrapper {
+    will-change: opacity, transform, filter;
+    backface-visibility: hidden;
+}
+
 /* ── Scan pulse ring ── */
 @keyframes scan-pulse {
   0% {
