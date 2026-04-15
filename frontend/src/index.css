@@ -221,7 +221,7 @@ body {
   border-radius: 10px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 15px rgba(139, 92, 246, 0.35);
 }
 
@@ -244,7 +244,7 @@ body {
   border-radius: 10px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-secondary:hover {
@@ -253,13 +253,17 @@ body {
   transform: translateY(-1px);
 }
 
+.btn-secondary:active {
+  transform: scale(0.98);
+}
+
 .btn-ghost {
   background: transparent;
   color: #94a3b8;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-ghost:hover {
@@ -268,13 +272,17 @@ body {
   border-color: rgba(255, 255, 255, 0.15);
 }
 
+.btn-ghost:active {
+  transform: scale(0.98);
+}
+
 /* ── Input ── */
 .input-field {
   background: rgba(13, 13, 31, 0.8);
   border: 1px solid rgba(139, 92, 246, 0.15);
   border-radius: 10px;
   color: #e2e8f0;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   outline: none;
 }
 
@@ -299,8 +307,12 @@ body {
   background: rgba(255, 255, 255, 0.04);
   color: #94a3b8;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   white-space: nowrap;
+}
+
+.pill:active {
+  transform: scale(0.95);
 }
 
 .pill:hover {
@@ -458,7 +470,7 @@ body {
   background: var(--c-surface2);
   border: 1px solid rgba(255, 255, 255, 0.04);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .list-card:hover {
@@ -703,6 +715,24 @@ body {
   pointer-events: none;
   transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
   z-index: 60;
+}
+
+/* ── Search Input ── */
+.search-input {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.search-input:focus {
+    transform: scale(1.02);
+}
+
+/* ── View Toggle ── */
+.view-toggle-btn {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.view-toggle-btn:active {
+    transform: scale(0.92);
 }
 
 /* ── Scanning overlay bar ── */

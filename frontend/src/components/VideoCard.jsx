@@ -33,6 +33,7 @@ export default function VideoCard({ video, style }) {
     const name = video.filename.replace(/\.[^/.]+$/, '')
     const progress = progressPercent(video)
     const hasProgress = progress > 1
+    const [imgLoaded, setImgLoaded] = React.useState(false)
 
     return (
         <article
@@ -51,8 +52,10 @@ export default function VideoCard({ video, style }) {
                     src={video.thumbnail_url}
                     alt={name}
                     loading="lazy"
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    onError={e => { e.target.src = '' }}
+                    className="absolute inset-0 w-full h-full object-cover transition-all duration-500"
+                    style={{ transform: imgLoaded ? 'scale(1)' : 'scale(1.1)', opacity: imgLoaded ? 1 : 0 }}
+                    onLoad={() => setImgLoaded(true)}
+                    onError={e => { e.target.src = ''; setImgLoaded(true) }}
                 />
 
                 {/* Overlay */}
