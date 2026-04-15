@@ -1,20 +1,14 @@
 import React from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
-import { useTransition, animated } from 'react-spring'
 import HomePage from './pages/HomePage'
 import PlayerPage from './pages/PlayerPage'
 import { ToastProvider } from './components/Toast'
 
 function PageWrapper({ children }) {
     return (
-        <animated.div
-            className="page-wrapper"
-            style={{
-                animation: 'pageIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards',
-            }}
-        >
+        <div className="page-wrapper">
             {children}
-        </animated.div>
+        </div>
     )
 }
 
