@@ -37,12 +37,14 @@ function SystemStatusFooter() {
 }
 
 export default function App() {
+    const location = useLocation()
+    
     return (
         <ToastProvider>
-            <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/player/:id" element={<PlayerPage />} />
-                <Route path="*" element={<HomePage />} />
+            <Routes location={location}>
+                <Route path="/" element={<PageWrapper><HomePage /></PageWrapper>} />
+                <Route path="/player/:id" element={<PageWrapper><PlayerPage /></PageWrapper>} />
+                <Route path="*" element={<PageWrapper><HomePage /></PageWrapper>} />
             </Routes>
             <SystemStatusFooter />
         </ToastProvider>
