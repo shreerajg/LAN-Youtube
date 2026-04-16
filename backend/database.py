@@ -64,7 +64,6 @@ class PlaylistItem(Base):
 def init_db():
     Base.metadata.create_all(bind=engine)
 
-    # Migrate existing DB: add new columns if missing
     from sqlalchemy import inspect, text
     inspector = inspect(engine)
     existing_cols = {col["name"] for col in inspector.get_columns("videos")} if inspector.has_table("videos") else set()
@@ -75,6 +74,11 @@ def init_db():
             conn.execute(text("ALTER TABLE videos ADD COLUMN watch_progress_secs REAL DEFAULT 0"))
         if "folder_id" not in existing_cols and inspector.has_table("videos"):
             conn.execute(text("ALTER TABLE videos ADD COLUMN folder_id INTEGER"))
+        
+        if not inspector.has_table("playlists"):
+            conn.execute(text("CREATE TABLE IF NOT EXISTS playlists (id INTEGER PRIMARY KEY, name TEXT NOT NULL, description TEXT, date_created DATETIME DEFAULT CURRENT_TIMESTAMP)"))
+        if not inspector.has_table("playlist_items"):
+            conn.execute(text("CREATE TABLE IF NOT EXISTS playlist_items (id INTEGER PRIMARY KEY, playlist_id INTEGER NOT NULL, video_id INTEGER NOT NULL, position INTEGER DEFAULT 0, date_added DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY(playlist_id) REFERENCES playlists(id), FOREIGN KEY(video_id) REFERENCES videos(id))"))
         conn.commit()
 
 
