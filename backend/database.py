@@ -1,8 +1,8 @@
 """
 database.py — SQLite ORM via SQLAlchemy
 """
-from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, ForeignKey
+from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 from datetime import datetime
 import os
 
@@ -29,14 +29,36 @@ class Video(Base):
     id = Column(Integer, primary_key=True, index=True)
     filename = Column(String, nullable=False)
     path = Column(String, unique=True, nullable=False)
-    size = Column(Float, nullable=False)          # bytes
-    duration = Column(Float, nullable=True)       # seconds
+    size = Column(Float, nullable=False)
+    duration = Column(Float, nullable=True)
     thumbnail_path = Column(String, nullable=True)
     date_added = Column(DateTime, default=datetime.utcnow)
     category = Column(String, default="Uncategorized")
-    folder_id = Column(Integer, nullable=True)    # which WatchedFolder it came from
+    folder_id = Column(Integer, nullable=True)
     last_watched_at = Column(DateTime, nullable=True)
     watch_progress_secs = Column(Float, default=0)
+
+
+class Playlist(Base):
+    __tablename__ = "playlists"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    description = Column(String, nullable=True)
+    date_created = Column(DateTime, default=datetime.utcnow)
+    items = relationship("PlaylistItem", back_populates="playlist", cascade="all, delete-orphan")
+
+
+class PlaylistItem(Base):
+    __tablename__ = "playlist_items"
+
+    id = Column(Integer, primary_key=True, index=True)
+    playlist_id = Column(Integer, ForeignKey("playlists.id"), nullable=False)
+    video_id = Column(Integer, ForeignKey("videos.id"), nullable=False)
+    position = Column(Integer, default=0)
+    date_added = Column(DateTime, default=datetime.utcnow)
+
+    playlist = relationship("Playlist", back_populates="items")
 
 
 def init_db():
