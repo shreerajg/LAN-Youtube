@@ -133,6 +133,19 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
                             </svg>
                             <span className="hidden sm:inline">Add Folder</span>
                         </button>
+
+                        {/* Playlists */}
+                        <button
+                            onClick={() => setShowPlaylistMgr(true)}
+                            className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl
+                                bg-cyan-600/20 text-cyan-400 border border-cyan-500/20 hover:bg-cyan-600/30 transition-colors"
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                    d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                            </svg>
+                            <span className="hidden sm:inline">Playlists</span>
+                        </button>
                     </div>
                 </div>
             </header>
@@ -141,6 +154,12 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
                 <FolderManager
                     onClose={() => setShowFolderMgr(false)}
                     onScanComplete={handleScanComplete}
+                />
+            )}
+
+            {showPlaylistMgr && (
+                <PlaylistManager
+                    onClose={() => setShowPlaylistMgr(false)}
                 />
             )}
         </>

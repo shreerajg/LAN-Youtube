@@ -555,7 +555,7 @@ def delete_playlist(playlist_id: int, db: Session = Depends(get_db)):
 
 
 @app.post("/api/playlists/{playlist_id}/items")
-def add_to_playlist(playlist_id: int, video_id: int, db: Session = Depends(get_db)):
+def add_to_playlist(playlist_id: int, video_id: int = 0, db: Session = Depends(get_db)):
     playlist = db.query(Playlist).filter(Playlist.id == playlist_id).first()
     if not playlist:
         raise HTTPException(status_code=404, detail="Playlist not found")
