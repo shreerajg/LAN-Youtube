@@ -126,6 +126,16 @@ class ProgressIn(BaseModel):
     seconds: float
 
 
+class PlaylistIn(BaseModel):
+    name: str
+    description: Optional[str] = None
+
+
+class PlaylistUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+
+
 def video_to_out(v: Video) -> VideoOut:
     return VideoOut(
         id=v.id,
