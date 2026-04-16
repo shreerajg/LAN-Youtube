@@ -2,11 +2,13 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { getStats } from '../api'
 import FolderManager from './FolderManager'
+import PlaylistManager from './PlaylistManager'
 
 export default function Navbar({ onSearch, onLibraryRefresh }) {
     const [query, setQuery] = useState('')
     const [stats, setStats] = useState(null)
     const [showFolderMgr, setShowFolderMgr] = useState(false)
+    const [showPlaylistMgr, setShowPlaylistMgr] = useState(false)
     const [scrolled, setScrolled] = useState(false)
     const location = useLocation()
     const isHome = location.pathname === '/'

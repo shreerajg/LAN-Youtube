@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import Navbar from '../components/Navbar'
 import VideoCard, { VideoListCard, VideoCardSkeleton } from '../components/VideoCard'
 import { getVideos, searchVideos, getInProgressVideos, getStats } from '../api'
+import PlaylistManager from '../components/PlaylistManager'
 
 const SORTS = [
     { key: 'date_added', label: 'Recently Added' },
@@ -168,7 +169,7 @@ function ContinueWatchingRow({ videos }) {
                 <div className="section-line" />
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 stagger">
-                {videos.map(v => <VideoCard key={v.id} video={v} />)}
+                {videos.map(v => <VideoCard key={v.id} video={v} onAddToPlaylist={setPlaylistVideo} />)}
             </div>
         </section>
     )
@@ -199,7 +200,7 @@ function CategorySection({ category, videos, emoji }) {
             </div>
             {!collapsed && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 stagger">
-                    {videos.map(v => <VideoCard key={v.id} video={v} />)}
+                    {videos.map(v => <VideoCard key={v.id} video={v} onAddToPlaylist={setPlaylistVideo} />)}
                 </div>
             )}
         </section>
@@ -224,6 +225,7 @@ export default function HomePage() {
     const [activeCategory, setActiveCategory] = useState('All')
     const [sort, setSort] = useState('date_added')
     const [viewMode, setViewMode] = useState('grid')
+    const [playlistVideo, setPlaylistVideo] = useState(null)
     const loadedRef = useRef(false)
 
     const categories = ['All', ...[...new Set(videos.map(v => v.category))].sort()]
@@ -419,7 +421,7 @@ export default function HomePage() {
                         {/* Filtered grid */}
                         {!showByCat && displayed.length > 0 && viewMode === 'grid' && (
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 stagger animate-fade-in">
-                                {displayed.map(v => <VideoCard key={v.id} video={v} />)}
+                                {displayed.map(v => <VideoCard key={v.id} video={v} onAddToPlaylist={setPlaylistVideo} />)}
                             </div>
                         )}
 
@@ -448,6 +450,13 @@ export default function HomePage() {
                     </>
                 )}
             </main>
+
+            {playlistVideo && (
+                <PlaylistManager
+                    videoId={playlistVideo.id}
+                    onClose={() => setPlaylistVideo(null)}
+                />
+            )}
         </div>
     )
 }

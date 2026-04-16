@@ -72,10 +72,8 @@ export const deletePlaylist = id =>
     fetch(`${BASE}/api/playlists/${id}`, { method: 'DELETE' }).then(r => r.json())
 
 export const addVideoToPlaylist = (playlistId, videoId) =>
-    fetch(`${BASE}/api/playlists/${playlistId}/items`, {
+    fetch(`${BASE}/api/playlists/${playlistId}/items?video_id=${videoId}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ videoId }),
     }).then(async r => {
         if (!r.ok) {
             const data = await r.json()

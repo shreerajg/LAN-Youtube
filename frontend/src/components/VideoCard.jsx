@@ -28,12 +28,17 @@ function formatProgress(secs) {
 }
 
 // ── Grid Card (default) ───────────────────────────────────────────────────────
-export default function VideoCard({ video, style }) {
+export default function VideoCard({ video, style, onAddToPlaylist }) {
     const navigate = useNavigate()
     const name = video.filename.replace(/\.[^/.]+$/, '')
     const progress = progressPercent(video)
     const hasProgress = progress > 1
     const [imgLoaded, setImgLoaded] = React.useState(false)
+
+    const handleAddClick = (e) => {
+        e.stopPropagation()
+        onAddToPlaylist && onAddToPlaylist(video)
+    }
 
     return (
         <article
@@ -85,6 +90,20 @@ export default function VideoCard({ video, style }) {
                     backdrop-blur-sm uppercase">
                     {video.filename.split('.').pop()}
                 </span>
+
+                {/* Add to playlist button */}
+                {onAddToPlaylist && (
+                    <button
+                        onClick={handleAddClick}
+                        className="absolute bottom-2 right-2 w-8 h-8 rounded-lg bg-black/60 hover:bg-violet-600 text-white
+                            flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 backdrop-blur-sm"
+                        title="Add to playlist"
+                    >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                    </button>
+                )}
 
                 {/* Progress bar */}
                 {hasProgress && (
