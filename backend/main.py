@@ -25,7 +25,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from datetime import datetime
 
-from database import init_db, get_db, Video, WatchedFolder, SessionLocal
+from database import init_db, get_db, Video, WatchedFolder, SessionLocal, Playlist, PlaylistItem
 from scanner import scan_library
 
 # ─── Constants ────────────────────────────────────────────────────────────────
