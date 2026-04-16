@@ -445,6 +445,171 @@ def get_stats(db: Session = Depends(get_db)):
     }
 
 
+# ─── Playlist API ──────────────────────────────────────────────────────────────
+class PlaylistItemOut(BaseModel):
+    id: int
+    video_id: int
+    position: int
+    video: Optional[VideoOut] = None
+
+    model_config = {"from_attributes": True}
+
+
+class PlaylistOut(BaseModel):
+    id: int
+    name: str
+    description: Optional[str] = None
+    date_created: datetime
+    item_count: int = 0
+    items: Optional[List[PlaylistItemOut]] = None
+
+    model_config = {"from_attributes": True}
+
+
+@app.get("/api/playlists", response_model=List[PlaylistOut])
+def list_playlists(db: Session = Depends(get_db)):
+    playlists = db.query(Playlist).order_by(Playlist.date_created.desc()).all()
+    result = []
+    for p in playlists:
+        item_count = db.query(PlaylistItem).filter(PlaylistItem.playlist_id == p.id).count()
+        result.append(PlaylistOut(
+            id=p.id,
+            name=p.name,
+            description=p.description,
+            date_created=p.date_created,
+            item_count=item_count,
+        ))
+    return result
+
+
+@app.post("/api/playlists", response_model=PlaylistOut)
+def create_playlist(body: PlaylistIn, db: Session = Depends(get_db)):
+    playlist = Playlist(
+        name=body.name,
+        description=body.description or "",
+        date_created=datetime.utcnow(),
+    )
+    db.add(playlist)
+    db.commit()
+    db.refresh(playlist)
+    return PlaylistOut(
+        id=playlist.id,
+        name=playlist.name,
+        description=playlist.description,
+        date_created=playlist.date_created,
+        item_count=0,
+    )
+
+
+@app.get("/api/playlists/{playlist_id}", response_model=PlaylistOut)
+def get_playlist(playlist_id: int, db: Session = Depends(get_db)):
+    playlist = db.query(Playlist).filter(Playlist.id == playlist_id).first()
+    if not playlist:
+        raise HTTPException(status_code=404, detail="Playlist not found")
+    
+    items = db.query(PlaylistItem).filter(PlaylistItem.playlist_id == playlist_id).order_by(PlaylistItem.position).all()
+    video_items = []
+    for item in items:
+        v = db.query(Video).filter(Video.id == item.video_id).first()
+        if v:
+            video_items.append(PlaylistItemOut(
+                id=item.id,
+                video_id=item.video_id,
+                position=item.position,
+                video=video_to_out(v),
+            ))
+    
+    return PlaylistOut(
+        id=playlist.id,
+        name=playlist.name,
+        description=playlist.description,
+        date_created=playlist.date_created,
+        item_count=len(video_items),
+        items=video_items,
+    )
+
+
+@app.put("/api/playlists/{playlist_id}", response_model=PlaylistOut)
+def update_playlist(playlist_id: int, body: PlaylistUpdate, db: Session = Depends(get_db)):
+    playlist = db.query(Playlist).filter(Playlist.id == playlist_id).first()
+    if not playlist:
+        raise HTTPException(status_code=404, detail="Playlist not found")
+    
+    if body.name is not None:
+        playlist.name = body.name
+    if body.description is not None:
+        playlist.description = body.description
+    db.commit()
+    db.refresh(playlist)
+    return get_playlist(playlist_id, db)
+
+
+@app.delete("/api/playlists/{playlist_id}")
+def delete_playlist(playlist_id: int, db: Session = Depends(get_db)):
+    playlist = db.query(Playlist).filter(Playlist.id == playlist_id).first()
+    if not playlist:
+        raise HTTPException(status_code=404, detail="Playlist not found")
+    db.delete(playlist)
+    db.commit()
+    return {"ok": True}
+
+
+@app.post("/api/playlists/{playlist_id}/items")
+def add_to_playlist(playlist_id: int, video_id: int, db: Session = Depends(get_db)):
+    playlist = db.query(Playlist).filter(Playlist.id == playlist_id).first()
+    if not playlist:
+        raise HTTPException(status_code=404, detail="Playlist not found")
+    
+    video = db.query(Video).filter(Video.id == video_id).first()
+    if not video:
+        raise HTTPException(status_code=404, detail="Video not found")
+    
+    max_pos = db.query(PlaylistItem).filter(PlaylistItem.playlist_id == playlist_id).count()
+    
+    existing = db.query(PlaylistItem).filter(
+        PlaylistItem.playlist_id == playlist_id,
+        PlaylistItem.video_id == video_id,
+    ).first()
+    if existing:
+        raise HTTPException(status_code=409, detail="Video already in playlist")
+    
+    item = PlaylistItem(
+        playlist_id=playlist_id,
+        video_id=video_id,
+        position=max_pos,
+        date_added=datetime.utcnow(),
+    )
+    db.add(item)
+    db.commit()
+    return {"ok": True, "position": max_pos}
+
+
+@app.delete("/api/playlists/{playlist_id}/items/{item_id}")
+def remove_from_playlist(playlist_id: int, item_id: int, db: Session = Depends(get_db)):
+    item = db.query(PlaylistItem).filter(
+        PlaylistItem.id == item_id,
+        PlaylistItem.playlist_id == playlist_id,
+    ).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    db.delete(item)
+    db.commit()
+    return {"ok": True}
+
+
+@app.put("/api/playlists/{playlist_id}/reorder")
+def reorder_playlist(playlist_id: int, item_ids: List[int], db: Session = Depends(get_db)):
+    for pos, item_id in enumerate(item_ids):
+        item = db.query(PlaylistItem).filter(
+            PlaylistItem.id == item_id,
+            PlaylistItem.playlist_id == playlist_id,
+        ).first()
+        if item:
+            item.position = pos
+    db.commit()
+    return {"ok": True}
+
+
 # ─── Serve React SPA ──────────────────────────────────────────────────────────
 if os.path.exists(FRONT_DIST):
     app.mount("/assets", StaticFiles(directory=os.path.join(FRONT_DIST, "assets")), name="assets")
