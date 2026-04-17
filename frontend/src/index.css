@@ -91,16 +91,16 @@ body {
 }
 
 .glass-card {
-  background: rgba(19, 19, 42, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(139, 92, 246, 0.08);
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  background: linear-gradient(145deg, rgba(19, 19, 42, 0.7), rgba(13, 13, 31, 0.6));
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(139, 92, 246, 0.1);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
 }
 
 .glass-card:hover {
-  border-color: rgba(139, 92, 246, 0.25);
-  box-shadow: 0 0 40px rgba(139, 92, 246, 0.08);
+  border-color: rgba(139, 92, 246, 0.3);
+  box-shadow: 0 0 40px rgba(139, 92, 246, 0.12);
 }
 
 /* ── Gradient Text ── */
@@ -314,12 +314,12 @@ body {
 .pill {
   display: inline-flex;
   align-items: center;
-  padding: 5px 14px;
+  padding: 6px 16px;
   border-radius: 999px;
   font-size: 13px;
   font-weight: 500;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.03);
   color: #94a3b8;
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -337,10 +337,10 @@ body {
 }
 
 .pill.active {
-  background: linear-gradient(135deg, rgba(124, 58, 237, 0.3), rgba(139, 92, 246, 0.2));
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.35), rgba(139, 92, 246, 0.2));
   border-color: rgba(139, 92, 246, 0.6);
   color: #c4b5fd;
-  box-shadow: 0 0 12px rgba(139, 92, 246, 0.2);
+  box-shadow: 0 0 15px rgba(139, 92, 246, 0.25), inset 0 1px 0 rgba(255,255,255,0.1);
 }
 
 /* ── Section Header ── */

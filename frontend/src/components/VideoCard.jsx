@@ -65,15 +65,15 @@ export default function VideoCard({ video, style, onAddToPlaylist }) {
 
                 {/* Overlay */}
                 <div className="card-overlay absolute inset-0 flex flex-col items-center justify-center gap-2">
-                    <div className="w-14 h-14 rounded-full bg-violet-600/90 flex items-center justify-center
+                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-violet-600 to-violet-500 flex items-center justify-center
                         shadow-2xl shadow-violet-600/60 backdrop-blur-sm
-                        transform scale-75 group-hover:scale-100 transition-all duration-300">
+                        transform scale-90 group-hover:scale-100 transition-all duration-300 ring-2 ring-white/20">
                         <svg className="w-7 h-7 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M8 5v14l11-7z" />
                         </svg>
                     </div>
                     {hasProgress && (
-                        <span className="text-xs text-white/80 bg-black/50 rounded-full px-2.5 py-0.5 backdrop-blur-sm">
+                        <span className="text-xs text-white/90 bg-black/60 rounded-full px-3 py-1 backdrop-blur-sm font-medium shadow-lg">
                             Resume {formatProgress(video.watch_progress_secs)}
                         </span>
                     )}

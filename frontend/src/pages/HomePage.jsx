@@ -77,12 +77,13 @@ function HeroSection({ videos, stats }) {
     const featured = videos.find(v => v.duration > 60) || videos[0]
 
     return (
-        <div className="relative overflow-hidden rounded-3xl mb-10 hero-gradient border border-white/[0.04] animate-fade-in">
+        <div className="relative overflow-hidden rounded-3xl mb-10 hero-gradient border border-white/[0.06] animate-fade-in shadow-2xl shadow-violet-900/10">
+            <div className="absolute inset-0 bg-gradient-to-br from-violet-900/5 via-transparent to-cyan-900/5" />
             {featured && (
-                <div className="absolute inset-0 opacity-15">
+                <div className="absolute inset-0 opacity-20">
                     <img src={featured.thumbnail_url} alt="" className="w-full h-full object-cover"
-                        style={{ filter: 'blur(30px)', transform: 'scale(1.3)' }} />
-                    <div className="absolute inset-0 bg-gradient-to-r from-[#06060f] via-[#06060f]/80 to-[#06060f]/60" />
+                        style={{ filter: 'blur(35px)', transform: 'scale(1.4)' }} />
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#06060f] via-[#06060f]/85 to-[#06060f]/65" />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#06060f] via-transparent to-transparent" />
                 </div>
             )}
@@ -129,13 +130,13 @@ function HeroSection({ videos, stats }) {
                         <p className="text-[10px] text-violet-400 font-black uppercase tracking-widest mb-2 text-center">🎯 Featured</p>
                         <a href={`/player/${featured.id}`}
                             className="block relative rounded-2xl overflow-hidden cursor-pointer group
-                                ring-1 ring-violet-500/20 shadow-2xl shadow-violet-900/30
-                                hover:ring-violet-500/50 transition-all duration-300">
+                                ring-1 ring-violet-500/30 shadow-2xl shadow-violet-900/40
+                                hover:ring-violet-400/60 hover:shadow-violet-500/30 transition-all duration-300">
                             <img src={featured.thumbnail_url} alt=""
                                 className="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-500" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
                             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                <div className="w-16 h-16 rounded-full bg-violet-600/90 flex items-center justify-center shadow-2xl shadow-violet-600/50">
+                                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-violet-600 to-violet-500 flex items-center justify-center shadow-2xl shadow-violet-500/50 animate-pulse">
                                     <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M8 5v14l11-7z" />
                                     </svg>
@@ -345,14 +346,14 @@ export default function HomePage() {
                                 ))}
                             </div>
 
-                            <div className="flex items-center gap-2 shrink-0">
+                            <div className="flex items-center gap-3 shrink-0">
                                 <select value={sort} onChange={e => setSort(e.target.value)}
-                                    className="input-field text-sm px-3 py-2 cursor-pointer text-slate-300 bg-transparent">
+                                    className="input-field text-sm px-4 py-2.5 cursor-pointer text-slate-300 bg-transparent rounded-xl border border-white/[0.08]">
                                     {SORTS.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
                                 </select>
 
                                 {/* View toggle */}
-                                <div className="flex rounded-xl overflow-hidden border border-white/[0.08] bg-white/[0.03]">
+                                <div className="flex rounded-xl overflow-hidden border border-white/[0.08] bg-white/[0.03] shadow-inner">
                                     {[
                                         { mode: 'grid', icon: <rect x="3" y="3" width="7" height="7" rx="1" />, label: 'Grid' },
                                         { mode: 'list', icon: <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />, label: 'List' },
@@ -360,9 +361,9 @@ export default function HomePage() {
                                         <button key={mode}
                                             onClick={() => setViewMode(mode)}
                                             title={label}
-                                            className={`px-3 py-2.5 transition-all ${viewMode === mode
-                                                ? 'bg-violet-600/40 text-violet-300'
-                                                : 'text-slate-500 hover:text-slate-300'}`}>
+                                            className={`px-3.5 py-2.5 transition-all duration-200 ${viewMode === mode
+                                                ? 'bg-gradient-to-r from-violet-600/50 to-violet-500/40 text-violet-200 shadow-lg shadow-violet-900/30'
+                                                : 'text-slate-500 hover:text-slate-300 hover:bg-white/[0.03]'}`}>
                                             <svg className="w-4 h-4" fill={mode === 'grid' ? 'currentColor' : 'none'}
                                                 stroke={mode === 'list' ? 'currentColor' : 'none'}
                                                 strokeWidth={mode === 'list' ? 2 : 0}
