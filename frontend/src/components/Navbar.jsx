@@ -126,7 +126,7 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
                         <button
                             id="add-folder-nav-btn"
                             onClick={() => setShowFolderMgr(true)}
-                            className="btn-primary flex items-center gap-2 px-4 py-2.5 text-sm font-semibold"
+                            className="btn-primary flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl"
                         >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -139,7 +139,8 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
                         <button
                             onClick={() => setShowPlaylistMgr(true)}
                             className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl
-                                bg-cyan-600/20 text-cyan-400 border border-cyan-500/20 hover:bg-cyan-600/30 transition-colors"
+                                bg-cyan-600/15 text-cyan-400 border border-cyan-500/15 hover:bg-cyan-600/25 
+                                hover:border-cyan-500/30 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/10"
                         >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
