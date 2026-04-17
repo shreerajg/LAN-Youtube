@@ -59,12 +59,12 @@ function StatCounter({ value, label, color, icon }) {
     }, [value])
 
     return (
-        <div className="glass-card rounded-2xl px-4 py-4 flex items-center gap-3 animate-slide-up hover:scale-105 transition-transform cursor-default">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl ${color.replace('text-', 'bg-').replace('400', '500/10')}`}>
+        <div className="glass-card rounded-2xl px-5 py-4 flex items-center gap-4 animate-slide-up hover:scale-105 transition-all duration-300 cursor-default group">
+            <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl ${color.replace('text-', 'bg-').replace('400', '500/10')} group-hover:scale-110 transition-transform duration-300`}>
                 {icon}
             </div>
             <div>
-                <p className={`text-2xl font-black font-['Space_Grotesk'] ${color}`}>{display}</p>
+                <p className="text-2xl font-black font-['Space_Grotesk']">{color}">{display}</p>
                 <p className="text-[11px] text-slate-500 font-medium uppercase tracking-wider">{label}</p>
             </div>
         </div>
