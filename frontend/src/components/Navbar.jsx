@@ -41,17 +41,18 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
 
     return (
         <>
-            <header className={`sticky top-0 z-50 transition-all duration-300
-                ${scrolled ? 'glass border-b border-violet-500/15 shadow-xl shadow-black/30' : 'bg-transparent'}`}>
+            <header className={`sticky top-0 z-50 transition-all duration-400
+                ${scrolled ? 'glass border-b border-violet-500/10 shadow-2xl shadow-black/40' : 'bg-transparent'}`}>
                 <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-4">
                     {/* Logo — PIXNEST */}
                     <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
-                        <div className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-violet-600 to-cyan-600
-                            flex items-center justify-center shadow-lg shadow-violet-600/30
-                            group-hover:shadow-violet-500/50 transition-all group-hover:scale-105">
+                        <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 via-violet-500 to-cyan-500
+                            flex items-center justify-center shadow-lg shadow-violet-600/40
+                            group-hover:shadow-violet-500/60 transition-all group-hover:scale-105 group-hover:rotate-3">
                             <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M4 6a2 2 0 012-2h12a2 2 0 012 2v5a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm0 9a2 2 0 012-2h4a2 2 0 012 2v1a2 2 0 01-2 2H6a2 2 0 01-2-2v-1zm10 0a2 2 0 012-2h.5a2 2 0 010 4H16a2 2 0 01-2-2zm-4 0a1 1 0 100 2 1 1 0 000-2z" />
                             </svg>
+                            <div className="absolute inset-0 rounded-xl bg-gradient-to-tr from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
                         <div className="hidden sm:flex flex-col items-start translate-y-0.5">
                             <span className="text-base font-black flex items-center gap-3">
