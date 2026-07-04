@@ -104,6 +104,8 @@ class VideoOut(BaseModel):
     path: str
     last_watched_at: Optional[datetime] = None
     watch_progress_secs: float = 0
+    is_favorite: bool = False
+    resolution: Optional[str] = None
 
     model_config = {"from_attributes": True}
 
@@ -150,6 +152,8 @@ def video_to_out(v: Video) -> VideoOut:
         path=v.path,
         last_watched_at=v.last_watched_at,
         watch_progress_secs=v.watch_progress_secs or 0,
+        is_favorite=bool(v.is_favorite),
+        resolution=v.resolution,
     )
 
 
@@ -170,6 +174,8 @@ def list_videos(
         q = q.order_by(Video.duration.desc())
     elif sort == "recently_watched":
         q = q.filter(Video.last_watched_at.isnot(None)).order_by(Video.last_watched_at.desc())
+    elif sort == "favorites":
+        q = q.filter(Video.is_favorite == True).order_by(Video.date_added.desc())
     else:
         q = q.order_by(Video.date_added.desc())
     videos = q.offset(skip).limit(limit).all()
@@ -201,6 +207,18 @@ def in_progress_videos(db: Session = Depends(get_db)):
     return [video_to_out(v) for v in result]
 
 
+@app.get("/api/videos/history", response_model=List[VideoOut])
+def watch_history(db: Session = Depends(get_db)):
+    """All ever-watched videos ordered by most recently watched."""
+    videos = (
+        db.query(Video)
+        .filter(Video.last_watched_at.isnot(None))
+        .order_by(Video.last_watched_at.desc())
+        .all()
+    )
+    return [video_to_out(v) for v in videos]
+
+
 @app.get("/api/videos/{video_id}", response_model=VideoOut)
 def get_video(video_id: int, db: Session = Depends(get_db)):
     v = db.query(Video).filter(Video.id == video_id).first()
@@ -216,6 +234,40 @@ def update_progress(video_id: int, body: ProgressIn, db: Session = Depends(get_d
         raise HTTPException(status_code=404, detail="Video not found")
     v.watch_progress_secs = body.seconds
     v.last_watched_at = datetime.utcnow()
+    db.commit()
+    return {"ok": True}
+
+
+@app.put("/api/videos/{video_id}/favorite")
+def toggle_favorite(video_id: int, db: Session = Depends(get_db)):
+    """Toggle the is_favorite flag for a video."""
+    v = db.query(Video).filter(Video.id == video_id).first()
+    if not v:
+        raise HTTPException(status_code=404, detail="Video not found")
+    v.is_favorite = not bool(v.is_favorite)
+    db.commit()
+    return {"ok": True, "is_favorite": bool(v.is_favorite)}
+
+
+@app.delete("/api/videos/{video_id}/history")
+def clear_video_history(video_id: int, db: Session = Depends(get_db)):
+    """Clear watch history (progress + timestamp) for a single video."""
+    v = db.query(Video).filter(Video.id == video_id).first()
+    if not v:
+        raise HTTPException(status_code=404, detail="Video not found")
+    v.watch_progress_secs = 0
+    v.last_watched_at = None
+    db.commit()
+    return {"ok": True}
+
+
+@app.delete("/api/videos/history/all")
+def clear_all_history(db: Session = Depends(get_db)):
+    """Clear watch history for ALL videos."""
+    db.query(Video).update({
+        "watch_progress_secs": 0,
+        "last_watched_at": None,
+    })
     db.commit()
     return {"ok": True}
 
@@ -437,11 +489,13 @@ def get_stats(db: Session = Depends(get_db)):
     size_gb = sum(r[0] for r in total_size) / (1024 ** 3)
     categories = db.query(Video.category).distinct().all()
     folders = db.query(WatchedFolder).count()
+    favorites = db.query(Video).filter(Video.is_favorite == True).count()
     return {
         "total_videos": total,
         "total_size_gb": round(size_gb, 2),
         "categories": [c[0] for c in categories if c[0]],
         "total_folders": folders,
+        "total_favorites": favorites,
     }
 
 
