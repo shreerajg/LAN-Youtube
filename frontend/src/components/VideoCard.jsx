@@ -1,5 +1,6 @@
-import React from 'react'
+import React, { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { toggleFavorite } from '../api'
 
 function formatDuration(secs) {
     if (!secs) return '0:00'
@@ -27,13 +28,48 @@ function formatProgress(secs) {
     return `${m}:${String(s).padStart(2, '0')}`
 }
 
+// Derive resolution label and CSS class
+function getResBadge(resolution) {
+    if (!resolution) return null
+    const parts = resolution.split('x')
+    if (parts.length !== 2) return null
+    const h = parseInt(parts[1], 10)
+    if (h >= 2160) return { label: '4K', cls: 'res-badge-4k' }
+    if (h >= 1080) return { label: '1080p', cls: 'res-badge-1080' }
+    if (h >= 720) return { label: '720p', cls: 'res-badge-720' }
+    return { label: `${h}p`, cls: 'res-badge-other' }
+}
+
+// "NEW" badge — within 48 hours of date_added
+function isNew(video) {
+    if (!video.date_added) return false
+    const added = new Date(video.date_added)
+    const now = new Date()
+    return (now - added) < 48 * 60 * 60 * 1000
+}
+
 // ── Grid Card (default) ───────────────────────────────────────────────────────
-export default function VideoCard({ video, style, onAddToPlaylist }) {
+export default function VideoCard({ video, style, onAddToPlaylist, onFavoriteToggle }) {
     const navigate = useNavigate()
     const name = video.filename.replace(/\.[^/.]+$/, '')
     const progress = progressPercent(video)
     const hasProgress = progress > 1
-    const [imgLoaded, setImgLoaded] = React.useState(false)
+    const [imgLoaded, setImgLoaded] = useState(false)
+    const [isFav, setIsFav] = useState(video.is_favorite || false)
+    const [heartAnim, setHeartAnim] = useState(false)
+    const resBadge = getResBadge(video.resolution)
+    const showNew = isNew(video)
+
+    const handleFavClick = useCallback(async (e) => {
+        e.stopPropagation()
+        try {
+            const res = await toggleFavorite(video.id)
+            setIsFav(res.is_favorite)
+            setHeartAnim(true)
+            setTimeout(() => setHeartAnim(false), 420)
+            onFavoriteToggle && onFavoriteToggle()
+        } catch { /* silent */ }
+    }, [video.id, onFavoriteToggle])
 
     const handleAddClick = (e) => {
         e.stopPropagation()
@@ -91,6 +127,38 @@ export default function VideoCard({ video, style, onAddToPlaylist }) {
                     {video.filename.split('.').pop()}
                 </span>
 
+                {/* NEW badge */}
+                {showNew && (
+                    <span className="absolute top-8 left-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[9px] font-black
+                        px-1.5 py-0.5 rounded-md uppercase tracking-wide new-badge-pulse z-10">
+                        NEW
+                    </span>
+                )}
+
+                {/* Resolution badge */}
+                {resBadge && (
+                    <span className={`absolute bottom-7 left-2 text-[9px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-wide z-10 ${resBadge.cls}`}>
+                        {resBadge.label}
+                    </span>
+                )}
+
+                {/* Favorite heart button */}
+                <button
+                    onClick={handleFavClick}
+                    className={`absolute bottom-7 right-2 w-7 h-7 rounded-lg flex items-center justify-center transition-all z-10
+                        opacity-0 group-hover:opacity-100 backdrop-blur-sm
+                        ${isFav
+                            ? 'opacity-100 bg-red-500/80 hover:bg-red-500 text-white'
+                            : 'bg-black/60 hover:bg-red-500/70 text-slate-300 hover:text-white'
+                        } ${heartAnim ? 'heart-pop' : ''}`}
+                    title={isFav ? 'Remove from favorites' : 'Add to favorites'}
+                >
+                    <svg className="w-3.5 h-3.5" fill={isFav ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round"
+                            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                </button>
+
                 {/* Add to playlist button */}
                 {onAddToPlaylist && (
                     <button
@@ -123,6 +191,7 @@ export default function VideoCard({ video, style, onAddToPlaylist }) {
                     </span>
                     <span>·</span>
                     <span>{formatSize(video.size)}</span>
+                    {isFav && <span className="ml-auto text-red-400 text-xs">♥</span>}
                 </div>
             </div>
         </article>
@@ -130,11 +199,26 @@ export default function VideoCard({ video, style, onAddToPlaylist }) {
 }
 
 // ── List Card ────────────────────────────────────────────────────────────────
-export function VideoListCard({ video, style }) {
+export function VideoListCard({ video, style, onFavoriteToggle }) {
     const navigate = useNavigate()
     const name = video.filename.replace(/\.[^/.]+$/, '')
     const progress = progressPercent(video)
     const hasProgress = progress > 1
+    const [isFav, setIsFav] = useState(video.is_favorite || false)
+    const [heartAnim, setHeartAnim] = useState(false)
+    const resBadge = getResBadge(video.resolution)
+    const showNew = isNew(video)
+
+    const handleFavClick = useCallback(async (e) => {
+        e.stopPropagation()
+        try {
+            const res = await toggleFavorite(video.id)
+            setIsFav(res.is_favorite)
+            setHeartAnim(true)
+            setTimeout(() => setHeartAnim(false), 420)
+            onFavoriteToggle && onFavoriteToggle()
+        } catch { /* silent */ }
+    }, [video.id, onFavoriteToggle])
 
     return (
         <article
@@ -158,6 +242,10 @@ export function VideoListCard({ video, style }) {
                         <path d="M8 5v14l11-7z" />
                     </svg>
                 </div>
+                {showNew && (
+                    <span className="absolute top-1 left-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[8px] font-black
+                        px-1 py-0.5 rounded uppercase tracking-wide new-badge-pulse">NEW</span>
+                )}
             </div>
 
             {/* Info */}
@@ -172,17 +260,38 @@ export function VideoListCard({ video, style }) {
                     <span>{formatDuration(video.duration)}</span>
                     <span>·</span>
                     <span>{formatSize(video.size)}</span>
+                    {resBadge && (
+                        <span className={`text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-wide ${resBadge.cls}`}>
+                            {resBadge.label}
+                        </span>
+                    )}
                 </div>
                 <p className="text-[11px] text-slate-600 font-mono truncate mt-1 hidden sm:block">
                     {video.path}
                 </p>
             </div>
 
-            {/* Play arrow */}
-            <div className="shrink-0 text-slate-600 group-hover:text-violet-400 transition-colors group-hover:translate-x-1 transition-transform">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
+            {/* Fav + arrow */}
+            <div className="shrink-0 flex items-center gap-2">
+                <button
+                    onClick={handleFavClick}
+                    className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all
+                        ${isFav
+                            ? 'text-red-400 hover:text-red-300'
+                            : 'text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100'
+                        } ${heartAnim ? 'heart-pop' : ''}`}
+                    title={isFav ? 'Remove from favorites' : 'Add to favorites'}
+                >
+                    <svg className="w-4 h-4" fill={isFav ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round"
+                            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                </button>
+                <div className="text-slate-600 group-hover:text-violet-400 transition-colors group-hover:translate-x-1 transition-transform">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                </div>
             </div>
         </article>
     )
