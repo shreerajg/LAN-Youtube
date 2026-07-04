@@ -1,8 +1,10 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import Plyr from 'plyr'
-import { getVideo, getStreamUrl, getDownloadUrl, updateProgress, getHlsUrl } from '../api'
+import { getVideo, getVideos, getStreamUrl, getDownloadUrl, updateProgress, getHlsUrl } from '../api'
 import Hls from 'hls.js'
+
+const SPEED_KEY = 'phantom_playback_speed'
 
 function formatDuration(secs) {
     if (!secs) return '0:00'
@@ -38,6 +40,29 @@ function MetaBadge({ icon, children }) {
     )
 }
 
+// Derive ambient color from thumbnail via canvas (simple center-pixel sample)
+function useAmbientColor(thumbnailUrl) {
+    const [color, setColor] = useState('139, 92, 246')
+    useEffect(() => {
+        if (!thumbnailUrl) return
+        const img = new Image()
+        img.crossOrigin = 'anonymous'
+        img.onload = () => {
+            try {
+                const canvas = document.createElement('canvas')
+                canvas.width = 16
+                canvas.height = 9
+                const ctx = canvas.getContext('2d')
+                ctx.drawImage(img, 0, 0, 16, 9)
+                const d = ctx.getImageData(7, 4, 1, 1).data
+                setColor(`${d[0]}, ${d[1]}, ${d[2]}`)
+            } catch { /* cors fallback */ }
+        }
+        img.src = thumbnailUrl
+    }, [thumbnailUrl])
+    return color
+}
+
 export default function PlayerPage() {
     const { id } = useParams()
     const navigate = useNavigate()
@@ -45,8 +70,12 @@ export default function PlayerPage() {
     const playerRef = useRef(null)
     const progressTimerRef = useRef(null)
     const [video, setVideo] = useState(null)
+    const [siblings, setSiblings] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
+    const [theatreMode, setTheatreMode] = useState(false)
+
+    const ambientColor = useAmbientColor(video?.thumbnail_url)
 
     const getActualTime = useCallback((currentTime) => {
         return currentTime || 0
@@ -60,14 +89,19 @@ export default function PlayerPage() {
         updateProgress(id, actualTime).catch(() => { })
     }, [id, getActualTime])
 
-
-
     // Fetch metadata
     useEffect(() => {
         setLoading(true)
         setError(null)
         getVideo(id)
-            .then(setVideo)
+            .then(v => {
+                setVideo(v)
+                // Fetch sibling videos from same category
+                return getVideos('date_added').then(all => {
+                    const cat = v.category || 'Uncategorized'
+                    setSiblings(all.filter(s => s.category === cat && s.id !== v.id))
+                })
+            })
             .catch(() => setError('Video not found'))
             .finally(() => setLoading(false))
     }, [id])
@@ -80,6 +114,8 @@ export default function PlayerPage() {
             try { playerRef.current.destroy() } catch { }
         }
 
+        const savedSpeed = parseFloat(localStorage.getItem(SPEED_KEY)) || 1
+
         const options = {
             controls: [
                 'play-large', 'rewind', 'play', 'fast-forward', 'progress',
@@ -87,34 +123,48 @@ export default function PlayerPage() {
                 'captions', 'settings', 'pip', 'airplay', 'fullscreen',
             ],
             settings: ['captions', 'quality', 'speed', 'loop'],
-            speed: { selected: 1, options: [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.5, 3] },
+            speed: { selected: savedSpeed, options: [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.5, 3] },
             keyboard: { focused: true, global: true },
             tooltips: { controls: true, seek: true },
         }
 
-        let plyr;
-        let hls;
+        let plyr
+        let hls
 
-        const isHls = video.filename.toLowerCase().endsWith('.mkv') || video.filename.toLowerCase().endsWith('.avi');
-
-        const targetTime = video.watch_progress_secs || 0;
+        const isHls = video.filename.toLowerCase().endsWith('.mkv') || video.filename.toLowerCase().endsWith('.avi')
+        const targetTime = video.watch_progress_secs || 0
 
         if (isHls && Hls.isSupported()) {
-            const hlsConfig = targetTime > 10 ? { startPosition: targetTime } : {};
-            hls = new Hls(hlsConfig);
-            hls.loadSource(getHlsUrl(id));
-            hls.attachMedia(videoRef.current);
-            plyr = new Plyr(videoRef.current, options);
+            const hlsConfig = targetTime > 10 ? { startPosition: targetTime } : {}
+            hls = new Hls(hlsConfig)
+            hls.loadSource(getHlsUrl(id))
+            hls.attachMedia(videoRef.current)
+            plyr = new Plyr(videoRef.current, options)
         } else {
             videoRef.current.src = getStreamUrl(id)
             plyr = new Plyr(videoRef.current, options)
 
             if (targetTime > 10) {
                 videoRef.current.addEventListener('loadedmetadata', () => {
-                    videoRef.current.currentTime = targetTime;
-                }, { once: true });
+                    videoRef.current.currentTime = targetTime
+                }, { once: true })
             }
         }
+
+        // Restore saved speed after ready
+        plyr.on('ready', () => {
+            if (savedSpeed !== 1) {
+                try { plyr.speed = savedSpeed } catch { }
+            }
+        })
+
+        // Save speed on change
+        plyr.on('ratechange', () => {
+            try {
+                const spd = plyr.speed
+                if (spd) localStorage.setItem(SPEED_KEY, String(spd))
+            } catch { }
+        })
 
         // Save progress every 10s during playback
         plyr.on('timeupdate', () => {
@@ -140,11 +190,24 @@ export default function PlayerPage() {
                 playerRef.current = null
             }
             if (hls) {
-                hls.destroy();
+                hls.destroy()
             }
             clearTimeout(progressTimerRef.current)
         }
     }, [video, saveProgress])
+
+    // Play Next — next in siblings list
+    const handlePlayNext = useCallback(() => {
+        if (siblings.length === 0) return
+        navigate(`/player/${siblings[0].id}`)
+    }, [siblings, navigate])
+
+    // Shuffle — random sibling
+    const handleShuffle = useCallback(() => {
+        if (siblings.length === 0) return
+        const idx = Math.floor(Math.random() * siblings.length)
+        navigate(`/player/${siblings[idx].id}`)
+    }, [siblings, navigate])
 
     if (loading) return (
         <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--c-bg)' }}>
@@ -179,12 +242,15 @@ export default function PlayerPage() {
         : 0
 
     return (
-        <div className="min-h-screen" style={{ background: 'var(--c-bg)' }}>
+        <div className="min-h-screen relative" style={{ background: 'var(--c-bg)' }}>
+            {/* Theatre Mode overlay */}
+            <div className={`theatre-mode-bg ${theatreMode ? 'active' : ''}`} />
+
             {/* Background orb */}
             <div className="orb w-96 h-96 bg-violet-700 -top-10 left-1/4" />
 
             {/* Top Bar */}
-            <header className="glass border-b border-violet-500/10 px-4 sm:px-6 py-3 flex items-center gap-3 relative z-10">
+            <header className="glass border-b border-violet-500/10 px-4 sm:px-6 py-3 flex items-center gap-3 relative z-20">
                 <button
                     id="back-btn"
                     onClick={() => navigate('/')}
@@ -203,6 +269,19 @@ export default function PlayerPage() {
 
                 {/* Actions */}
                 <div className="flex items-center gap-2 shrink-0">
+                    {/* Theatre Mode */}
+                    <button
+                        id="theatre-mode-btn"
+                        onClick={() => setTheatreMode(t => !t)}
+                        className={`action-chip ${theatreMode ? 'theatre-active' : ''}`}
+                        title="Toggle Theatre Mode"
+                    >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4" />
+                        </svg>
+                        <span className="hidden sm:inline">Theatre</span>
+                    </button>
 
                     <a
                         id="download-video-btn"
@@ -220,14 +299,23 @@ export default function PlayerPage() {
 
             {/* Player */}
             <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 animate-fade-in relative z-10">
-                <div className="rounded-2xl overflow-hidden shadow-2xl shadow-violet-900/40 ring-1 ring-violet-500/10">
-                    <video
-                        ref={videoRef}
-                        id={`player-${id}`}
-                        className="w-full"
-                        playsInline
-                        preload="auto"
-                    />
+                {/* Ambient glow behind player */}
+                <div className="relative">
+                    {theatreMode && (
+                        <div
+                            className="ambient-glow active"
+                            style={{ background: `rgb(${ambientColor})` }}
+                        />
+                    )}
+                    <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-violet-900/40 ring-1 ring-violet-500/10">
+                        <video
+                            ref={videoRef}
+                            id={`player-${id}`}
+                            className="w-full"
+                            playsInline
+                            preload="auto"
+                        />
+                    </div>
                 </div>
 
                 {/* Progress completion bar */}
@@ -269,12 +357,50 @@ export default function PlayerPage() {
                         <MetaBadge icon="🎞">
                             {video.filename.split('.').pop().toUpperCase()}
                         </MetaBadge>
+                        {video.resolution && (
+                            <MetaBadge icon="📐">
+                                {video.resolution}
+                            </MetaBadge>
+                        )}
                         {video.last_watched_at && (
                             <MetaBadge icon="👁">
                                 Watched {new Date(video.last_watched_at).toLocaleDateString()}
                             </MetaBadge>
                         )}
                     </div>
+
+                    {/* Play Next / Shuffle */}
+                    {siblings.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-5">
+                            <button
+                                id="play-next-btn"
+                                onClick={handlePlayNext}
+                                className="action-chip"
+                                title={`Play next: ${siblings[0]?.filename.replace(/\.[^/.]+$/, '')}`}
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                        d="M9 5l7 7-7 7M20 5v14" />
+                                </svg>
+                                Play Next
+                            </button>
+                            <button
+                                id="shuffle-btn"
+                                onClick={handleShuffle}
+                                className="action-chip"
+                                title="Shuffle — play a random video from this category"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                        d="M4 16v-2.5a4 4 0 014-4h8M4 8v2.5a4 4 0 004 4h8m0-8l3 3-3 3m0 6l3 3-3 3" />
+                                </svg>
+                                Shuffle
+                            </button>
+                            <span className="text-xs text-slate-600 self-center">
+                                {siblings.length} more in {video.category}
+                            </span>
+                        </div>
+                    )}
 
                     {/* Keyboard shortcuts */}
                     <div className="border-t border-white/[0.05] pt-4">
