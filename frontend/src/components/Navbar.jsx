@@ -44,7 +44,7 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
             <header className={`sticky top-0 z-50 transition-all duration-400
                 ${scrolled ? 'glass border-b border-violet-500/10 shadow-2xl shadow-black/40' : 'bg-transparent'}`}>
                 <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-4">
-                    {/* Logo — PIXNEST */}
+                    {/* Logo */}
                     <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
                         <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 via-violet-500 to-cyan-500
                             flex items-center justify-center shadow-lg shadow-violet-600/40
@@ -110,6 +110,14 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
                                     </div>
                                     <span className="tooltip-box-bottom">Total library size</span>
                                 </div>
+                                {stats.total_favorites > 0 && (
+                                    <div className="tooltip-wrap">
+                                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-xs cursor-default">
+                                            <span className="text-red-400 font-bold">♥ {stats.total_favorites}</span>
+                                        </div>
+                                        <span className="tooltip-box-bottom">Favorited videos</span>
+                                    </div>
+                                )}
                                 {stats.total_folders > 0 && (
                                     <div className="tooltip-wrap">
                                         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-xs cursor-default">
@@ -121,6 +129,23 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
                                 )}
                             </div>
                         )}
+
+                        {/* History */}
+                        <Link
+                            id="history-nav-btn"
+                            to="/history"
+                            className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl
+                                bg-slate-500/10 text-slate-400 border border-slate-500/15
+                                hover:bg-slate-500/20 hover:border-slate-500/30 hover:text-slate-200
+                                transition-all duration-300"
+                            title="Watch History"
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span className="hidden sm:inline">History</span>
+                        </Link>
 
                         {/* Add Folder */}
                         <button
