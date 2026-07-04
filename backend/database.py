@@ -1,7 +1,7 @@
 """
 database.py — SQLite ORM via SQLAlchemy
 """
-from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, ForeignKey
+from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, ForeignKey, Boolean
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 from datetime import datetime
 import os
@@ -37,6 +37,9 @@ class Video(Base):
     folder_id = Column(Integer, nullable=True)
     last_watched_at = Column(DateTime, nullable=True)
     watch_progress_secs = Column(Float, default=0)
+    # New columns
+    is_favorite = Column(Boolean, default=False)
+    resolution = Column(String, nullable=True)   # e.g. "1920x1080"
 
 
 class Playlist(Base):
@@ -74,7 +77,12 @@ def init_db():
             conn.execute(text("ALTER TABLE videos ADD COLUMN watch_progress_secs REAL DEFAULT 0"))
         if "folder_id" not in existing_cols and inspector.has_table("videos"):
             conn.execute(text("ALTER TABLE videos ADD COLUMN folder_id INTEGER"))
-        
+        # New columns
+        if "is_favorite" not in existing_cols and inspector.has_table("videos"):
+            conn.execute(text("ALTER TABLE videos ADD COLUMN is_favorite INTEGER DEFAULT 0"))
+        if "resolution" not in existing_cols and inspector.has_table("videos"):
+            conn.execute(text("ALTER TABLE videos ADD COLUMN resolution TEXT"))
+
         if not inspector.has_table("playlists"):
             conn.execute(text("CREATE TABLE IF NOT EXISTS playlists (id INTEGER PRIMARY KEY, name TEXT NOT NULL, description TEXT, date_created DATETIME DEFAULT CURRENT_TIMESTAMP)"))
         if not inspector.has_table("playlist_items"):

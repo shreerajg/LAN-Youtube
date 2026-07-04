@@ -4,11 +4,40 @@ Scans all WatchedFolder paths + default media/ directory.
 Removes stale entries for files that no longer exist on disk.
 """
 import os
+import subprocess
 from datetime import datetime
 from database import SessionLocal, Video, WatchedFolder
 from thumbnailer import generate_thumbnail, get_duration
+
 DEFAULT_MEDIA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "media")
 SUPPORTED_EXTS = {".mp4", ".mkv", ".webm", ".avi", ".mov", ".m4v", ".ts", ".flv"}
+
+
+def get_resolution(video_path: str) -> str | None:
+    """Return resolution string like '1920x1080' using ffprobe."""
+    try:
+        result = subprocess.run(
+            [
+                "ffprobe", "-v", "error",
+                "-select_streams", "v:0",
+                "-show_entries", "stream=width,height",
+                "-of", "csv=s=x:p=0",
+                video_path,
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=15,
+        )
+        out = result.stdout.decode().strip()
+        # out should be like "1920x1080"
+        if "x" in out and out.replace("x", "").replace("\n", "").isdigit() is False:
+            # validate it looks like NxN
+            parts = out.split("x")
+            if len(parts) == 2 and parts[0].isdigit() and parts[1].isdigit():
+                return out
+        return None
+    except Exception:
+        return None
 
 
 def scan_library() -> dict:
@@ -52,6 +81,7 @@ def scan_library() -> dict:
 
                     file_size = os.path.getsize(abs_path)
                     duration = get_duration(abs_path)
+                    resolution = get_resolution(abs_path)
 
                     # Category: subfolder name relative to scan_dir, or "Uncategorized"
                     rel = os.path.relpath(abs_path, scan_dir)
@@ -67,6 +97,8 @@ def scan_library() -> dict:
                         folder_id=folder_id,
                         date_added=datetime.utcnow(),
                         watch_progress_secs=0,
+                        is_favorite=False,
+                        resolution=resolution,
                     )
                     db.add(video)
                     db.flush()
@@ -76,7 +108,7 @@ def scan_library() -> dict:
                     db.add(video)
                     db.commit()
                     added += 1
-                    print(f"[scanner] Added: {fname}")
+                    print(f"[scanner] Added: {fname} ({resolution or 'unknown res'})")
 
         # Remove stale entries (file deleted from disk)
         all_videos = db.query(Video).all()
