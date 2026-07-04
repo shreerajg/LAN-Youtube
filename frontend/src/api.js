@@ -91,3 +91,17 @@ export const reorderPlaylist = (playlistId, itemIds) =>
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(itemIds),
     }).then(r => r.json())
+
+// ─── Favorites ────────────────────────────────────────────────────────────────
+export const toggleFavorite = id =>
+    fetch(`${BASE}/api/videos/${id}/favorite`, { method: 'PUT' }).then(r => r.json())
+
+// ─── Watch History ────────────────────────────────────────────────────────────
+export const getHistory = () =>
+    fetch(`${BASE}/api/videos/history`).then(r => r.json())
+
+export const clearVideoHistory = id =>
+    fetch(`${BASE}/api/videos/${id}/history`, { method: 'DELETE' }).then(r => r.json())
+
+export const clearAllHistory = () =>
+    fetch(`${BASE}/api/videos/history/all`, { method: 'DELETE' }).then(r => r.json())
