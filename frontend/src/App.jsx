@@ -2,6 +2,7 @@ import React from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import HomePage from './pages/HomePage'
 import PlayerPage from './pages/PlayerPage'
+import HistoryPage from './pages/HistoryPage'
 import { ToastProvider } from './components/Toast'
 
 function PageWrapper({ children }) {
@@ -38,6 +39,7 @@ export default function App() {
             <Routes location={location}>
                 <Route path="/" element={<PageWrapper><HomePage /></PageWrapper>} />
                 <Route path="/player/:id" element={<PageWrapper><PlayerPage /></PageWrapper>} />
+                <Route path="/history" element={<PageWrapper><HistoryPage /></PageWrapper>} />
                 <Route path="*" element={<PageWrapper><HomePage /></PageWrapper>} />
             </Routes>
             <SystemStatusFooter />
