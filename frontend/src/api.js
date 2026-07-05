@@ -105,3 +105,44 @@ export const clearVideoHistory = id =>
 
 export const clearAllHistory = () =>
     fetch(`${BASE}/api/videos/history/all`, { method: 'DELETE' }).then(r => r.json())
+
+// ─── LAN Features ─────────────────────────────────────────────────────────────
+export const getSharedFiles = (category = 'all') =>
+    fetch(`${BASE}/api/files?category=${category}`).then(r => r.json())
+
+export const deleteSharedFile = id =>
+    fetch(`${BASE}/api/files/${id}`, { method: 'DELETE' }).then(r => r.json())
+
+export const getLanDevices = () =>
+    fetch(`${BASE}/api/lan/devices`).then(r => r.json())
+
+export const getClipboard = () =>
+    fetch(`${BASE}/api/clipboard`).then(r => r.json())
+
+export const addClipboard = (content, deviceName) =>
+    fetch(`${BASE}/api/clipboard`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content, device_name: deviceName }),
+    }).then(r => r.json())
+
+export const deleteClipboardItem = id =>
+    fetch(`${BASE}/api/clipboard/${id}`, { method: 'DELETE' }).then(r => r.json())
+
+export const clearClipboard = () =>
+    fetch(`${BASE}/api/clipboard`, { method: 'DELETE' }).then(r => r.json())
+
+export const getLanInfo = () =>
+    fetch(`${BASE}/api/lan/info`).then(r => r.json())
+
+export const getWsUrl = () => {
+    const loc = window.location;
+    const protocol = loc.protocol === 'https:' ? 'wss:' : 'ws:';
+    // If BASE is empty, assume we are on same host
+    if (BASE === '') {
+        return `${protocol}//${loc.host}/api/ws/chat`;
+    }
+    // Otherwise construct from BASE
+    const baseUrl = new URL(BASE || loc.origin);
+    return `${protocol}//${baseUrl.host}/api/ws/chat`;
+}
