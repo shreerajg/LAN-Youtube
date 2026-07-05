@@ -130,6 +130,42 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
                             </div>
                         )}
 
+                        {/* Files */}
+                        <Link
+                            to="/files"
+                            className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl
+                                bg-emerald-500/10 text-emerald-400 border border-emerald-500/15
+                                hover:bg-emerald-500/20 hover:border-emerald-500/30 hover:text-emerald-300
+                                transition-all duration-300"
+                            title="LAN File Share"
+                        >
+                            <span className="hidden sm:inline">Files</span>
+                        </Link>
+
+                        {/* Chat */}
+                        <Link
+                            to="/chat"
+                            className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl
+                                bg-pink-500/10 text-pink-400 border border-pink-500/15
+                                hover:bg-pink-500/20 hover:border-pink-500/30 hover:text-pink-300
+                                transition-all duration-300"
+                            title="LAN Chat"
+                        >
+                            <span className="hidden sm:inline">Chat</span>
+                        </Link>
+
+                        {/* LAN */}
+                        <Link
+                            to="/lan"
+                            className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl
+                                bg-blue-500/10 text-blue-400 border border-blue-500/15
+                                hover:bg-blue-500/20 hover:border-blue-500/30 hover:text-blue-300
+                                transition-all duration-300"
+                            title="LAN Dashboard"
+                        >
+                            <span className="hidden sm:inline">LAN</span>
+                        </Link>
+
                         {/* History */}
                         <Link
                             id="history-nav-btn"
