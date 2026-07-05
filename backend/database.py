@@ -1,7 +1,7 @@
 """
 database.py — SQLite ORM via SQLAlchemy
 """
-from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, ForeignKey, Boolean
+from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, ForeignKey, Boolean, Text
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 from datetime import datetime
 import os
@@ -64,6 +64,30 @@ class PlaylistItem(Base):
     playlist = relationship("Playlist", back_populates="items")
 
 
+class SharedFile(Base):
+    __tablename__ = "shared_files"
+
+    id = Column(Integer, primary_key=True, index=True)
+    filename = Column(String, nullable=False)          # original filename
+    stored_name = Column(String, nullable=False)       # uuid-based stored name
+    size = Column(Float, nullable=False)               # bytes
+    mime_type = Column(String, nullable=True)
+    category = Column(String, default="other")        # image, document, audio, video, archive, other
+    uploaded_by_ip = Column(String, nullable=True)
+    date_uploaded = Column(DateTime, default=datetime.utcnow)
+    path = Column(String, nullable=False)              # absolute path on disk
+
+
+class ClipboardItem(Base):
+    __tablename__ = "clipboard_items"
+
+    id = Column(Integer, primary_key=True, index=True)
+    content = Column(Text, nullable=False)
+    device_ip = Column(String, nullable=True)
+    device_name = Column(String, nullable=True)
+    date_created = Column(DateTime, default=datetime.utcnow)
+
+
 def init_db():
     Base.metadata.create_all(bind=engine)
 
@@ -77,7 +101,6 @@ def init_db():
             conn.execute(text("ALTER TABLE videos ADD COLUMN watch_progress_secs REAL DEFAULT 0"))
         if "folder_id" not in existing_cols and inspector.has_table("videos"):
             conn.execute(text("ALTER TABLE videos ADD COLUMN folder_id INTEGER"))
-        # New columns
         if "is_favorite" not in existing_cols and inspector.has_table("videos"):
             conn.execute(text("ALTER TABLE videos ADD COLUMN is_favorite INTEGER DEFAULT 0"))
         if "resolution" not in existing_cols and inspector.has_table("videos"):
@@ -87,6 +110,32 @@ def init_db():
             conn.execute(text("CREATE TABLE IF NOT EXISTS playlists (id INTEGER PRIMARY KEY, name TEXT NOT NULL, description TEXT, date_created DATETIME DEFAULT CURRENT_TIMESTAMP)"))
         if not inspector.has_table("playlist_items"):
             conn.execute(text("CREATE TABLE IF NOT EXISTS playlist_items (id INTEGER PRIMARY KEY, playlist_id INTEGER NOT NULL, video_id INTEGER NOT NULL, position INTEGER DEFAULT 0, date_added DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY(playlist_id) REFERENCES playlists(id), FOREIGN KEY(video_id) REFERENCES videos(id))"))
+
+        # New tables
+        if not inspector.has_table("shared_files"):
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS shared_files (
+                    id INTEGER PRIMARY KEY,
+                    filename TEXT NOT NULL,
+                    stored_name TEXT NOT NULL,
+                    size REAL NOT NULL,
+                    mime_type TEXT,
+                    category TEXT DEFAULT 'other',
+                    uploaded_by_ip TEXT,
+                    date_uploaded DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    path TEXT NOT NULL
+                )
+            """))
+        if not inspector.has_table("clipboard_items"):
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS clipboard_items (
+                    id INTEGER PRIMARY KEY,
+                    content TEXT NOT NULL,
+                    device_ip TEXT,
+                    device_name TEXT,
+                    date_created DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+            """))
         conn.commit()
 
 
