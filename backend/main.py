@@ -1,23 +1,30 @@
 """
 main.py — FastAPI LAN Media Server
-Multi-folder streaming, watch progress, folder management API.
+Multi-folder streaming, watch progress, folder management,
+LAN file share, LAN chat, device discovery, clipboard sync.
 """
 import os
 import shutil
 import subprocess
 import socket
 import asyncio
+import uuid
+import mimetypes
+import io
+import base64
+import time
 from contextlib import asynccontextmanager
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 
 import aiofiles
 import tempfile
-from fastapi import FastAPI, HTTPException, Request, Depends, BackgroundTasks
+from fastapi import FastAPI, HTTPException, Request, Depends, BackgroundTasks, UploadFile, File, WebSocket, WebSocketDisconnect
 from fastapi.responses import (
     StreamingResponse,
     FileResponse,
     JSONResponse,
     HTMLResponse,
+    Response,
 )
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -25,18 +32,22 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from datetime import datetime
 
-from database import init_db, get_db, Video, WatchedFolder, SessionLocal, Playlist, PlaylistItem
+from database import init_db, get_db, Video, WatchedFolder, SessionLocal, Playlist, PlaylistItem, SharedFile, ClipboardItem
 from scanner import scan_library
 
 # ─── Constants ────────────────────────────────────────────────────────────────
-BASE_DIR    = os.path.dirname(os.path.abspath(__file__))
-THUMB_DIR   = os.path.join(BASE_DIR, "..", "thumbnails")
-FRONT_DIST  = os.path.join(BASE_DIR, "..", "frontend", "dist")
-CHUNK_SIZE  = 5 * 1024 * 1024   # 5 MB chunks for smoother streaming
-FFMPEG_PATH = shutil.which("ffmpeg") or "ffmpeg"
+BASE_DIR      = os.path.dirname(os.path.abspath(__file__))
+THUMB_DIR     = os.path.join(BASE_DIR, "..", "thumbnails")
+FRONT_DIST    = os.path.join(BASE_DIR, "..", "frontend", "dist")
+SHARED_FILES  = os.path.join(BASE_DIR, "..", "shared_files")
+CHUNK_SIZE    = 5 * 1024 * 1024   # 5 MB
+FFMPEG_PATH   = shutil.which("ffmpeg") or "ffmpeg"
+MAX_CLIPBOARD = 20
+SERVER_START  = time.time()
 
 HLS_DIR = os.path.join(tempfile.gettempdir(), "lan_youtube_hls")
 os.makedirs(HLS_DIR, exist_ok=True)
+os.makedirs(SHARED_FILES, exist_ok=True)
 active_transcodes = {}
 
 MIME_MAP = {
@@ -50,6 +61,87 @@ MIME_MAP = {
     ".flv":  "video/x-flv",
 }
 
+FILE_CATEGORY_MAP = {
+    "image":    [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".svg", ".ico", ".tiff", ".heic"],
+    "video":    [".mp4", ".mkv", ".avi", ".mov", ".webm", ".m4v", ".flv", ".ts"],
+    "audio":    [".mp3", ".wav", ".flac", ".aac", ".ogg", ".m4a", ".wma", ".opus"],
+    "document": [".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".txt", ".md", ".csv", ".odt"],
+    "archive":  [".zip", ".rar", ".7z", ".tar", ".gz", ".bz2", ".xz"],
+    "code":     [".py", ".js", ".ts", ".jsx", ".tsx", ".html", ".css", ".json", ".yaml", ".yml", ".xml", ".sh", ".bat"],
+}
+
+# ─── Chat Manager ─────────────────────────────────────────────────────────────
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: Dict[str, WebSocket] = {}  # client_id -> ws
+        self.client_meta: Dict[str, Dict] = {}              # client_id -> {name, color, ip}
+        self.message_history: List[Dict] = []
+        self.COLORS = [
+            "#8b5cf6", "#06b6d4", "#f59e0b", "#10b981",
+            "#ef4444", "#ec4899", "#3b82f6", "#84cc16",
+            "#f97316", "#a855f7",
+        ]
+        self._color_idx = 0
+
+    def _next_color(self) -> str:
+        c = self.COLORS[self._color_idx % len(self.COLORS)]
+        self._color_idx += 1
+        return c
+
+    async def connect(self, websocket: WebSocket, client_id: str, name: str, ip: str):
+        await websocket.accept()
+        self.active_connections[client_id] = websocket
+        self.client_meta[client_id] = {
+            "name": name,
+            "color": self._next_color(),
+            "ip": ip,
+        }
+        join_msg = {
+            "type": "system",
+            "text": f"{name} joined the chat",
+            "timestamp": datetime.utcnow().isoformat(),
+            "client_id": client_id,
+        }
+        self.message_history.append(join_msg)
+        if len(self.message_history) > 200:
+            self.message_history = self.message_history[-200:]
+        await self.broadcast(join_msg)
+        # Send history + roster to newcomer
+        await websocket.send_json({
+            "type": "init",
+            "history": self.message_history[-100:],
+            "roster": list(self.client_meta.values()),
+            "your_id": client_id,
+            "your_meta": self.client_meta[client_id],
+        })
+
+    def disconnect(self, client_id: str):
+        name = self.client_meta.get(client_id, {}).get("name", "Unknown")
+        self.active_connections.pop(client_id, None)
+        self.client_meta.pop(client_id, None)
+        return name
+
+    async def broadcast(self, message: dict):
+        dead = []
+        for cid, ws in self.active_connections.items():
+            try:
+                await ws.send_json(message)
+            except Exception:
+                dead.append(cid)
+        for cid in dead:
+            self.active_connections.pop(cid, None)
+            self.client_meta.pop(cid, None)
+
+    def get_roster(self) -> List[Dict]:
+        return [
+            {"client_id": cid, **meta}
+            for cid, meta in self.client_meta.items()
+        ]
+
+
+chat_manager = ConnectionManager()
+
+
 # ─── Startup ──────────────────────────────────────────────────────────────────
 def get_local_ip() -> str:
     try:
@@ -62,19 +154,22 @@ def get_local_ip() -> str:
         return "127.0.0.1"
 
 
+LOCAL_IP = "127.0.0.1"
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    global LOCAL_IP
     init_db()
-    ip = get_local_ip()
+    LOCAL_IP = get_local_ip()
     print("\n" + "="*55)
     print("      LAN YouTube - Media Server")
     print("="*55)
     print(f"  Local:    http://localhost:8000")
-    print(f"  Network:  http://{ip}:8000  < share this with LAN devices")
+    print(f"  Network:  http://{LOCAL_IP}:8000  < share this with LAN devices")
     print("="*55 + "\n")
     loop = asyncio.get_event_loop()
     await loop.run_in_executor(None, scan_library)
-
     yield
 
 
@@ -138,6 +233,34 @@ class PlaylistUpdate(BaseModel):
     description: Optional[str] = None
 
 
+class SharedFileOut(BaseModel):
+    id: int
+    filename: str
+    size: float
+    mime_type: Optional[str] = None
+    category: str
+    uploaded_by_ip: Optional[str] = None
+    date_uploaded: datetime
+    download_url: str
+
+    model_config = {"from_attributes": True}
+
+
+class ClipboardItemOut(BaseModel):
+    id: int
+    content: str
+    device_ip: Optional[str] = None
+    device_name: Optional[str] = None
+    date_created: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class ClipboardIn(BaseModel):
+    content: str
+    device_name: Optional[str] = None
+
+
 def video_to_out(v: Video) -> VideoOut:
     return VideoOut(
         id=v.id,
@@ -155,6 +278,27 @@ def video_to_out(v: Video) -> VideoOut:
         is_favorite=bool(v.is_favorite),
         resolution=v.resolution,
     )
+
+
+def shared_file_to_out(f: SharedFile) -> SharedFileOut:
+    return SharedFileOut(
+        id=f.id,
+        filename=f.filename,
+        size=f.size,
+        mime_type=f.mime_type,
+        category=f.category,
+        uploaded_by_ip=f.uploaded_by_ip,
+        date_uploaded=f.date_uploaded,
+        download_url=f"/api/files/download/{f.id}",
+    )
+
+
+def get_file_category(ext: str) -> str:
+    ext = ext.lower()
+    for cat, exts in FILE_CATEGORY_MAP.items():
+        if ext in exts:
+            return cat
+    return "other"
 
 
 # ─── Video API Routes ─────────────────────────────────────────────────────────
@@ -193,7 +337,7 @@ def search_videos(q: str = "", db: Session = Depends(get_db)):
 
 @app.get("/api/videos/in-progress", response_model=List[VideoOut])
 def in_progress_videos(db: Session = Depends(get_db)):
-    """Videos with watch progress > 30s but not fully watched (< 95% complete)."""
+    """Videos with watch progress >30s but not fully watched (< 95% complete)."""
     videos = (
         db.query(Video)
         .filter(Video.watch_progress_secs > 30)
@@ -202,7 +346,6 @@ def in_progress_videos(db: Session = Depends(get_db)):
         .limit(20)
         .all()
     )
-    # Filter out fully watched ones (>95% of duration)
     result = [v for v in videos if v.duration and v.watch_progress_secs < v.duration * 0.95]
     return [video_to_out(v) for v in result]
 
@@ -293,7 +436,6 @@ def serve_thumbnail(video_id: int, db: Session = Depends(get_db)):
 
 
 # ─── HLS Streaming ────────────────────────────────────────────────────────────
-
 @app.get("/api/hls/{video_id}/playlist.m3u8")
 async def serve_hls_playlist(video_id: int, db: Session = Depends(get_db)):
     v = db.query(Video).filter(Video.id == video_id).first()
@@ -305,13 +447,12 @@ async def serve_hls_playlist(video_id: int, db: Session = Depends(get_db)):
     playlist_path = os.path.join(out_dir, "playlist.m3u8")
 
     if video_id not in active_transcodes:
-        # Clear previous segments
         for f in os.listdir(out_dir):
             try:
                 os.remove(os.path.join(out_dir, f))
             except:
                 pass
-            
+
         cmd = [
             FFMPEG_PATH,
             "-i", v.path,
@@ -327,7 +468,7 @@ async def serve_hls_playlist(video_id: int, db: Session = Depends(get_db)):
         ]
         proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         active_transcodes[video_id] = proc
-        
+
     for _ in range(50):
         if os.path.exists(playlist_path):
             with open(playlist_path, "r") as f:
@@ -335,11 +476,12 @@ async def serve_hls_playlist(video_id: int, db: Session = Depends(get_db)):
                 if "segment_" in content:
                     break
         await asyncio.sleep(0.2)
-        
+
     if not os.path.exists(playlist_path):
         raise HTTPException(status_code=500, detail="Failed to initialize HLS stream")
-        
+
     return FileResponse(playlist_path, media_type="application/vnd.apple.mpegurl")
+
 
 @app.get("/api/hls/{video_id}/{file_name}")
 async def serve_hls_segment(video_id: int, file_name: str):
@@ -347,6 +489,7 @@ async def serve_hls_segment(video_id: int, file_name: str):
     if not os.path.exists(path):
         raise HTTPException(status_code=404)
     return FileResponse(path)
+
 
 # ─── Streaming ────────────────────────────────────────────────────────────────
 @app.get("/api/stream/{video_id}")
@@ -457,7 +600,6 @@ def add_folder(body: FolderIn, background_tasks: BackgroundTasks, db: Session = 
     db.commit()
     db.refresh(folder)
 
-    # Kick off a background scan so videos appear immediately
     background_tasks.add_task(scan_library)
     return folder
 
@@ -468,7 +610,6 @@ def remove_folder(folder_id: int, db: Session = Depends(get_db)):
     if not folder:
         raise HTTPException(status_code=404, detail="Folder not found")
 
-    # Remove all videos that came from this folder
     db.query(Video).filter(Video.folder_id == folder_id).delete()
     db.delete(folder)
     db.commit()
@@ -490,12 +631,17 @@ def get_stats(db: Session = Depends(get_db)):
     categories = db.query(Video.category).distinct().all()
     folders = db.query(WatchedFolder).count()
     favorites = db.query(Video).filter(Video.is_favorite == True).count()
+    shared = db.query(SharedFile).count()
+    shared_size = db.query(SharedFile).with_entities(SharedFile.size).all()
+    shared_size_mb = sum(r[0] for r in shared_size) / (1024 ** 2)
     return {
         "total_videos": total,
         "total_size_gb": round(size_gb, 2),
         "categories": [c[0] for c in categories if c[0]],
         "total_folders": folders,
         "total_favorites": favorites,
+        "shared_files": shared,
+        "shared_size_mb": round(shared_size_mb, 2),
     }
 
 
@@ -560,7 +706,7 @@ def get_playlist(playlist_id: int, db: Session = Depends(get_db)):
     playlist = db.query(Playlist).filter(Playlist.id == playlist_id).first()
     if not playlist:
         raise HTTPException(status_code=404, detail="Playlist not found")
-    
+
     items = db.query(PlaylistItem).filter(PlaylistItem.playlist_id == playlist_id).order_by(PlaylistItem.position).all()
     video_items = []
     for item in items:
@@ -572,7 +718,7 @@ def get_playlist(playlist_id: int, db: Session = Depends(get_db)):
                 position=item.position,
                 video=video_to_out(v),
             ))
-    
+
     return PlaylistOut(
         id=playlist.id,
         name=playlist.name,
@@ -588,7 +734,7 @@ def update_playlist(playlist_id: int, body: PlaylistUpdate, db: Session = Depend
     playlist = db.query(Playlist).filter(Playlist.id == playlist_id).first()
     if not playlist:
         raise HTTPException(status_code=404, detail="Playlist not found")
-    
+
     if body.name is not None:
         playlist.name = body.name
     if body.description is not None:
@@ -613,20 +759,20 @@ def add_to_playlist(playlist_id: int, video_id: int = 0, db: Session = Depends(g
     playlist = db.query(Playlist).filter(Playlist.id == playlist_id).first()
     if not playlist:
         raise HTTPException(status_code=404, detail="Playlist not found")
-    
+
     video = db.query(Video).filter(Video.id == video_id).first()
     if not video:
         raise HTTPException(status_code=404, detail="Video not found")
-    
+
     max_pos = db.query(PlaylistItem).filter(PlaylistItem.playlist_id == playlist_id).count()
-    
+
     existing = db.query(PlaylistItem).filter(
         PlaylistItem.playlist_id == playlist_id,
         PlaylistItem.video_id == video_id,
     ).first()
     if existing:
         raise HTTPException(status_code=409, detail="Video already in playlist")
-    
+
     item = PlaylistItem(
         playlist_id=playlist_id,
         video_id=video_id,
@@ -664,6 +810,337 @@ def reorder_playlist(playlist_id: int, item_ids: List[int], db: Session = Depend
     return {"ok": True}
 
 
+# ─── LAN File Share ───────────────────────────────────────────────────────────
+@app.get("/api/files", response_model=List[SharedFileOut])
+def list_shared_files(
+    category: Optional[str] = None,
+    db: Session = Depends(get_db),
+):
+    q = db.query(SharedFile).order_by(SharedFile.date_uploaded.desc())
+    if category and category != "all":
+        q = q.filter(SharedFile.category == category)
+    return [shared_file_to_out(f) for f in q.all()]
+
+
+@app.post("/api/files/upload", response_model=SharedFileOut)
+async def upload_file(
+    request: Request,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+):
+    # Determine category & mime
+    ext = os.path.splitext(file.filename or "")[1].lower()
+    mime = file.content_type or mimetypes.guess_type(file.filename or "")[0] or "application/octet-stream"
+    category = get_file_category(ext)
+
+    # Generate unique stored name
+    stored_name = f"{uuid.uuid4().hex}{ext}"
+    dest_path = os.path.join(SHARED_FILES, stored_name)
+
+    # Stream write to disk
+    total_size = 0
+    async with aiofiles.open(dest_path, "wb") as out:
+        while True:
+            chunk = await file.read(1024 * 1024)  # 1 MB chunks
+            if not chunk:
+                break
+            await out.write(chunk)
+            total_size += len(chunk)
+
+    # Get client IP
+    client_ip = request.client.host if request.client else "unknown"
+
+    record = SharedFile(
+        filename=file.filename or stored_name,
+        stored_name=stored_name,
+        size=total_size,
+        mime_type=mime,
+        category=category,
+        uploaded_by_ip=client_ip,
+        date_uploaded=datetime.utcnow(),
+        path=dest_path,
+    )
+    db.add(record)
+    db.commit()
+    db.refresh(record)
+
+    # Broadcast to chat that a file was shared
+    await chat_manager.broadcast({
+        "type": "system",
+        "text": f"📁 {file.filename} was shared from {client_ip}",
+        "timestamp": datetime.utcnow().isoformat(),
+        "client_id": "system",
+    })
+
+    return shared_file_to_out(record)
+
+
+@app.get("/api/files/download/{file_id}")
+def download_shared_file(file_id: int, db: Session = Depends(get_db)):
+    f = db.query(SharedFile).filter(SharedFile.id == file_id).first()
+    if not f or not os.path.exists(f.path):
+        raise HTTPException(status_code=404, detail="File not found")
+    return FileResponse(
+        f.path,
+        filename=f.filename,
+        media_type=f.mime_type or "application/octet-stream",
+        headers={"Content-Disposition": f'attachment; filename="{f.filename}"'},
+    )
+
+
+@app.delete("/api/files/{file_id}")
+def delete_shared_file(file_id: int, db: Session = Depends(get_db)):
+    f = db.query(SharedFile).filter(SharedFile.id == file_id).first()
+    if not f:
+        raise HTTPException(status_code=404, detail="File not found")
+    if os.path.exists(f.path):
+        try:
+            os.remove(f.path)
+        except Exception:
+            pass
+    db.delete(f)
+    db.commit()
+    return {"ok": True}
+
+
+# ─── LAN Chat (WebSocket) ─────────────────────────────────────────────────────
+@app.websocket("/api/ws/chat")
+async def chat_endpoint(websocket: WebSocket):
+    client_id = str(uuid.uuid4())[:8]
+    client_ip = websocket.client.host if websocket.client else "unknown"
+
+    # Name from query param, fallback to Device_<ip_suffix>
+    params = websocket.query_params
+    raw_name = params.get("name", "").strip()
+    name = raw_name if raw_name else f"Device_{client_ip.split('.')[-1]}"
+
+    await chat_manager.connect(websocket, client_id, name, client_ip)
+    try:
+        while True:
+            data = await websocket.receive_json()
+            if data.get("type") == "message":
+                text = data.get("text", "").strip()
+                if not text:
+                    continue
+                meta = chat_manager.client_meta.get(client_id, {})
+                msg = {
+                    "type": "message",
+                    "client_id": client_id,
+                    "name": meta.get("name", name),
+                    "color": meta.get("color", "#8b5cf6"),
+                    "text": text[:2000],
+                    "timestamp": datetime.utcnow().isoformat(),
+                }
+                chat_manager.message_history.append(msg)
+                if len(chat_manager.message_history) > 200:
+                    chat_manager.message_history = chat_manager.message_history[-200:]
+                await chat_manager.broadcast(msg)
+            elif data.get("type") == "rename":
+                new_name = data.get("name", "").strip()
+                if new_name and client_id in chat_manager.client_meta:
+                    old_name = chat_manager.client_meta[client_id]["name"]
+                    chat_manager.client_meta[client_id]["name"] = new_name[:30]
+                    sys_msg = {
+                        "type": "system",
+                        "text": f"{old_name} renamed to {new_name}",
+                        "timestamp": datetime.utcnow().isoformat(),
+                        "client_id": "system",
+                    }
+                    await chat_manager.broadcast(sys_msg)
+            elif data.get("type") == "ping":
+                await websocket.send_json({"type": "pong"})
+    except WebSocketDisconnect:
+        left_name = chat_manager.disconnect(client_id)
+        leave_msg = {
+            "type": "system",
+            "text": f"{left_name} left the chat",
+            "timestamp": datetime.utcnow().isoformat(),
+            "client_id": "system",
+        }
+        chat_manager.message_history.append(leave_msg)
+        await chat_manager.broadcast(leave_msg)
+
+
+@app.get("/api/chat/history")
+def get_chat_history():
+    return {"messages": chat_manager.message_history[-100:]}
+
+
+@app.get("/api/chat/roster")
+def get_chat_roster():
+    return {"roster": chat_manager.get_roster(), "online": len(chat_manager.active_connections)}
+
+
+# ─── LAN Device Discovery ─────────────────────────────────────────────────────
+async def ping_host(ip: str) -> Optional[Dict[str, Any]]:
+    """Ping a single IP and return info if alive."""
+    try:
+        start = asyncio.get_event_loop().time()
+        proc = await asyncio.create_subprocess_exec(
+            "ping", "-n", "1", "-w", "300", ip,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, _ = await asyncio.wait_for(proc.communicate(), timeout=1.5)
+        elapsed = (asyncio.get_event_loop().time() - start) * 1000
+        output = stdout.decode(errors="replace")
+        if "TTL=" in output or "ttl=" in output:
+            # Try hostname
+            hostname = ip
+            try:
+                hostname = socket.gethostbyaddr(ip)[0]
+            except Exception:
+                pass
+            return {
+                "ip": ip,
+                "hostname": hostname,
+                "ping_ms": round(elapsed, 1),
+                "alive": True,
+            }
+    except Exception:
+        pass
+    return None
+
+
+@app.get("/api/lan/devices")
+async def discover_devices():
+    """Scan the local subnet for active devices."""
+    my_ip = get_local_ip()
+    parts = my_ip.split(".")
+    if len(parts) != 4:
+        return {"devices": [], "my_ip": my_ip}
+
+    subnet = ".".join(parts[:3])
+    tasks = [ping_host(f"{subnet}.{i}") for i in range(1, 255)]
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    devices = []
+    for r in results:
+        if isinstance(r, dict) and r:
+            r["is_server"] = (r["ip"] == my_ip)
+            devices.append(r)
+
+    devices.sort(key=lambda d: [int(x) for x in d["ip"].split(".")])
+    return {"devices": devices, "my_ip": my_ip, "total": len(devices)}
+
+
+# ─── Clipboard Sync ────────────────────────────────────────────────────────────
+@app.get("/api/clipboard", response_model=List[ClipboardItemOut])
+def get_clipboard(db: Session = Depends(get_db)):
+    items = db.query(ClipboardItem).order_by(ClipboardItem.date_created.desc()).limit(MAX_CLIPBOARD).all()
+    return items
+
+
+@app.post("/api/clipboard", response_model=ClipboardItemOut)
+async def add_clipboard(body: ClipboardIn, request: Request, db: Session = Depends(get_db)):
+    if not body.content.strip():
+        raise HTTPException(status_code=400, detail="Content cannot be empty")
+
+    client_ip = request.client.host if request.client else "unknown"
+    item = ClipboardItem(
+        content=body.content[:50000],  # 50KB limit per item
+        device_ip=client_ip,
+        device_name=body.device_name or f"Device_{client_ip.split('.')[-1]}",
+        date_created=datetime.utcnow(),
+    )
+    db.add(item)
+    db.commit()
+    db.refresh(item)
+
+    # Keep only last MAX_CLIPBOARD items
+    all_items = db.query(ClipboardItem).order_by(ClipboardItem.date_created.desc()).all()
+    if len(all_items) > MAX_CLIPBOARD:
+        for old in all_items[MAX_CLIPBOARD:]:
+            db.delete(old)
+        db.commit()
+
+    # Notify chat
+    await chat_manager.broadcast({
+        "type": "clipboard",
+        "text": f"📋 Clipboard updated by {item.device_name}",
+        "timestamp": datetime.utcnow().isoformat(),
+        "client_id": "system",
+        "item_id": item.id,
+    })
+
+    return item
+
+
+@app.delete("/api/clipboard/{item_id}")
+def delete_clipboard_item(item_id: int, db: Session = Depends(get_db)):
+    item = db.query(ClipboardItem).filter(ClipboardItem.id == item_id).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    db.delete(item)
+    db.commit()
+    return {"ok": True}
+
+
+@app.delete("/api/clipboard")
+def clear_clipboard(db: Session = Depends(get_db)):
+    db.query(ClipboardItem).delete()
+    db.commit()
+    return {"ok": True}
+
+
+# ─── LAN Info & QR Code ───────────────────────────────────────────────────────
+@app.get("/api/lan/info")
+def get_lan_info(db: Session = Depends(get_db)):
+    my_ip = get_local_ip()
+    uptime_secs = int(time.time() - SERVER_START)
+    hours, rem = divmod(uptime_secs, 3600)
+    mins, secs = divmod(rem, 60)
+    total_videos = db.query(Video).count()
+    shared_files = db.query(SharedFile).count()
+    online_users = len(chat_manager.active_connections)
+    return {
+        "ip": my_ip,
+        "port": 8000,
+        "url": f"http://{my_ip}:8000",
+        "uptime": f"{hours:02d}:{mins:02d}:{secs:02d}",
+        "uptime_secs": uptime_secs,
+        "total_videos": total_videos,
+        "shared_files": shared_files,
+        "online_users": online_users,
+    }
+
+
+@app.get("/api/lan/qrcode")
+def get_qr_code():
+    """Generate QR code PNG for the server URL."""
+    try:
+        import qrcode
+        from PIL import Image
+
+        my_ip = get_local_ip()
+        url = f"http://{my_ip}:8000"
+
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_M,
+            box_size=8,
+            border=2,
+        )
+        qr.add_data(url)
+        qr.make(fit=True)
+
+        img = qr.make_image(fill_color="#8b5cf6", back_color="#0d0d1f")
+        buf = io.BytesIO()
+        img.save(buf, format="PNG")
+        buf.seek(0)
+
+        return Response(content=buf.getvalue(), media_type="image/png")
+    except ImportError:
+        # Fallback: return a simple SVG QR placeholder
+        svg = """<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'>
+          <rect width='200' height='200' fill='#0d0d1f'/>
+          <text x='100' y='100' text-anchor='middle' fill='#8b5cf6' font-size='12' font-family='monospace'>
+            Install qrcode lib
+          </text>
+        </svg>"""
+        return Response(content=svg, media_type="image/svg+xml")
+
+
 # ─── Serve React SPA ──────────────────────────────────────────────────────────
 if os.path.exists(FRONT_DIST):
     app.mount("/assets", StaticFiles(directory=os.path.join(FRONT_DIST, "assets")), name="assets")
@@ -679,5 +1156,5 @@ else:
     async def root():
         return HTMLResponse(
             "<h1>LAN YouTube backend is running.</h1>"
-            "<p>Build the frontend: <code>cd frontend &amp;&amp; npm install &amp;&amp; npm run build</code></p>"
+            "<p>Build the frontend: <code>cd frontend && npm install && npm run build</code></p>"
         )
