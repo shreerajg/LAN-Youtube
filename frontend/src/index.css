@@ -919,3 +919,38 @@ body {
   color: #a78bfa;
   box-shadow: 0 0 12px rgba(139, 92, 246, 0.25);
 }
+
+/* ── Mobile Touch Overrides ── */
+@media (hover: none) {
+  .video-card:hover {
+    transform: none !important;
+    box-shadow: none !important;
+    z-index: auto !important;
+  }
+  .video-card:hover::before {
+    opacity: 0 !important;
+  }
+  .video-card .card-overlay {
+    opacity: 1; 
+    background: linear-gradient(to top, rgba(6, 6, 15, 0.8) 0%, rgba(6, 6, 15, 0) 50%, transparent 100%);
+  }
+  .list-card:hover {
+    transform: none !important;
+  }
+  .pill:hover {
+    transform: none !important;
+  }
+  .btn-primary:hover, .btn-secondary:hover, .btn-ghost:hover {
+    transform: none !important;
+  }
+  .action-chip:hover {
+    transform: none !important;
+  }
+}
+
+/* Bottom Nav Padding for body */
+@media (max-width: 639px) {
+  .mobile-bottom-nav-padding {
+    padding-bottom: 80px; 
+  }
+}
