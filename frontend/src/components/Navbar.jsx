@@ -92,7 +92,7 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
                         </div>
                     )}
 
-                    <div className="flex items-center gap-2 ml-auto shrink-0">
+                    <div className="fixed bottom-0 left-0 right-0 bg-[#0d0d1f]/95 backdrop-blur-md border-t border-violet-500/20 p-2 sm:p-0 flex items-center gap-2 overflow-x-auto sm:static sm:bg-transparent sm:backdrop-blur-none sm:border-none sm:justify-start sm:overflow-visible sm:ml-auto shrink-0 z-50 pb-safe pb-4 sm:pb-0 hide-scrollbar px-2 sm:px-0">
                         {/* Stats chips */}
                         {stats && (
                             <div className="hidden lg:flex items-center gap-1.5">
@@ -133,50 +133,50 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
                         {/* Files */}
                         <Link
                             to="/files"
-                            className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl
+                            className="flex items-center justify-center gap-2 px-3 py-2.5 sm:px-4 text-sm font-semibold rounded-xl
                                 bg-emerald-500/10 text-emerald-400 border border-emerald-500/15
                                 hover:bg-emerald-500/20 hover:border-emerald-500/30 hover:text-emerald-300
-                                transition-all duration-300"
+                                transition-all duration-300 min-w-[70px] sm:min-w-0"
                             title="LAN File Share"
                         >
-                            <span className="hidden sm:inline">Files</span>
+                            <span className="sm:inline">Files</span>
                         </Link>
 
                         {/* Chat */}
                         <Link
                             to="/chat"
-                            className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl
+                            className="flex items-center justify-center gap-2 px-3 py-2.5 sm:px-4 text-sm font-semibold rounded-xl
                                 bg-pink-500/10 text-pink-400 border border-pink-500/15
                                 hover:bg-pink-500/20 hover:border-pink-500/30 hover:text-pink-300
-                                transition-all duration-300"
+                                transition-all duration-300 min-w-[70px] sm:min-w-0"
                             title="LAN Chat"
                         >
-                            <span className="hidden sm:inline">Chat</span>
+                            <span className="sm:inline">Chat</span>
                         </Link>
 
                         {/* LAN */}
                         <Link
                             to="/lan"
-                            className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl
+                            className="flex items-center justify-center gap-2 px-3 py-2.5 sm:px-4 text-sm font-semibold rounded-xl
                                 bg-blue-500/10 text-blue-400 border border-blue-500/15
                                 hover:bg-blue-500/20 hover:border-blue-500/30 hover:text-blue-300
-                                transition-all duration-300"
+                                transition-all duration-300 min-w-[70px] sm:min-w-0"
                             title="LAN Dashboard"
                         >
-                            <span className="hidden sm:inline">LAN</span>
+                            <span className="sm:inline">LAN</span>
                         </Link>
 
                         {/* History */}
                         <Link
                             id="history-nav-btn"
                             to="/history"
-                            className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl
+                            className="flex items-center justify-center gap-2 px-3 py-2.5 sm:px-4 text-sm font-semibold rounded-xl
                                 bg-slate-500/10 text-slate-400 border border-slate-500/15
                                 hover:bg-slate-500/20 hover:border-slate-500/30 hover:text-slate-200
-                                transition-all duration-300"
+                                transition-all duration-300 min-w-[70px] sm:min-w-0"
                             title="Watch History"
                         >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                                     d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
@@ -187,23 +187,23 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
                         <button
                             id="add-folder-nav-btn"
                             onClick={() => setShowFolderMgr(true)}
-                            className="btn-primary flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl"
+                            className="btn-primary flex items-center justify-center gap-2 px-3 py-2.5 sm:px-4 text-sm font-semibold rounded-xl shrink-0"
                         >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                                     d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
                             </svg>
-                            <span className="hidden sm:inline">Add Folder</span>
+                            <span className="hidden sm:inline">Add</span>
                         </button>
 
                         {/* Playlists */}
                         <button
                             onClick={() => setShowPlaylistMgr(true)}
-                            className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl
+                            className="flex items-center justify-center gap-2 px-3 py-2.5 sm:px-4 text-sm font-semibold rounded-xl
                                 bg-cyan-600/15 text-cyan-400 border border-cyan-500/15 hover:bg-cyan-600/25 
-                                hover:border-cyan-500/30 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/10"
+                                hover:border-cyan-500/30 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/10 shrink-0"
                         >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                                     d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
                             </svg>
