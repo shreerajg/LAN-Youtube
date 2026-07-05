@@ -3,6 +3,9 @@ import { Routes, Route, useLocation } from 'react-router-dom'
 import HomePage from './pages/HomePage'
 import PlayerPage from './pages/PlayerPage'
 import HistoryPage from './pages/HistoryPage'
+import FilesPage from './pages/FilesPage'
+import ChatPage from './pages/ChatPage'
+import LANDashboard from './pages/LANDashboard'
 import { ToastProvider } from './components/Toast'
 
 function PageWrapper({ children }) {
@@ -40,6 +43,9 @@ export default function App() {
                 <Route path="/" element={<PageWrapper><HomePage /></PageWrapper>} />
                 <Route path="/player/:id" element={<PageWrapper><PlayerPage /></PageWrapper>} />
                 <Route path="/history" element={<PageWrapper><HistoryPage /></PageWrapper>} />
+                <Route path="/files" element={<PageWrapper><FilesPage /></PageWrapper>} />
+                <Route path="/chat" element={<PageWrapper><ChatPage /></PageWrapper>} />
+                <Route path="/lan" element={<PageWrapper><LANDashboard /></PageWrapper>} />
                 <Route path="*" element={<PageWrapper><HomePage /></PageWrapper>} />
             </Routes>
             <SystemStatusFooter />
