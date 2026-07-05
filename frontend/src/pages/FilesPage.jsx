@@ -123,7 +123,7 @@ export default function FilesPage() {
     }
 
     return (
-        <div className="pt-24 pb-20 px-4 sm:px-8 max-w-7xl mx-auto min-h-screen flex flex-col">
+        <div className="pt-20 sm:pt-24 pb-6 sm:pb-8 px-4 sm:px-8 max-w-7xl mx-auto min-h-screen flex flex-col">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
                 <div>
                     <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-cyan-400">
@@ -132,7 +132,7 @@ export default function FilesPage() {
                     <p className="text-muted text-sm mt-2">Upload and download files across your local network.</p>
                 </div>
                 
-                <div className="flex gap-2 bg-surface2 p-1 rounded-xl border border-border">
+                <div className="flex gap-2 bg-surface2 p-1 rounded-xl border border-border overflow-x-auto hide-scrollbar w-full sm:w-auto">
                     {['all', 'image', 'video', 'document', 'archive', 'other'].map(c => (
                         <button
                             key={c}
@@ -151,7 +151,7 @@ export default function FilesPage() {
 
             {/* Dropzone */}
             <div 
-                className="mb-8 border-2 border-dashed border-border rounded-2xl p-10 flex flex-col items-center justify-center text-center hover:border-cyan-500/50 hover:bg-cyan-500/5 transition-all cursor-pointer relative overflow-hidden"
+                className="mb-8 border-2 border-dashed border-border rounded-2xl py-12 px-6 sm:p-10 flex flex-col items-center justify-center text-center hover:border-cyan-500/50 hover:bg-cyan-500/5 transition-all cursor-pointer relative overflow-hidden"
                 onDrop={onDrop}
                 onDragOver={onDragOver}
                 onClick={() => !uploading && fileInputRef.current?.click()}
@@ -226,7 +226,7 @@ export default function FilesPage() {
                                 </span>
                                 <button
                                     onClick={(e) => handleDelete(file.id, e)}
-                                    className="text-red-400 hover:text-red-300 opacity-0 group-hover:opacity-100 transition-opacity p-1"
+                                    className="text-red-400 hover:text-red-300 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity p-3 sm:p-1 -mr-2 sm:mr-0"
                                     title="Delete file"
                                 >
                                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

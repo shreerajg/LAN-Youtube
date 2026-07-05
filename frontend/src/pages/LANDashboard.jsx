@@ -85,7 +85,7 @@ export default function LANDashboard() {
     }
 
     return (
-        <div className="pt-24 pb-20 px-4 sm:px-8 max-w-7xl mx-auto min-h-screen">
+        <div className="pt-20 sm:pt-24 pb-6 sm:pb-8 px-4 sm:px-8 max-w-7xl mx-auto min-h-screen">
             <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500 mb-2">
                 LAN Dashboard
             </h1>
@@ -242,10 +242,10 @@ export default function LANDashboard() {
                                     </p>
                                     
                                     {/* Actions hover overlay */}
-                                    <div className="absolute top-1/2 right-2 -translate-y-1/2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="absolute top-1/2 right-2 -translate-y-1/2 flex flex-col sm:flex-row gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity bg-surface2/80 sm:bg-transparent p-1 sm:p-0 rounded-lg">
                                         <button 
                                             onClick={() => handleCopy(item.content)}
-                                            className="p-1.5 bg-surface rounded-md border border-border hover:bg-violet-500/20 hover:text-violet-400 text-muted transition-colors"
+                                            className="p-2 sm:p-1.5 bg-surface rounded-md border border-border hover:bg-violet-500/20 hover:text-violet-400 text-muted transition-colors shadow-lg sm:shadow-none"
                                             title="Copy to local clipboard"
                                         >
                                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -254,7 +254,7 @@ export default function LANDashboard() {
                                         </button>
                                         <button 
                                             onClick={() => handleDeleteClip(item.id)}
-                                            className="p-1.5 bg-surface rounded-md border border-border hover:bg-red-500/20 hover:text-red-400 text-muted transition-colors"
+                                            className="p-2 sm:p-1.5 bg-surface rounded-md border border-border hover:bg-red-500/20 hover:text-red-400 text-muted transition-colors shadow-lg sm:shadow-none"
                                             title="Delete"
                                         >
                                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
