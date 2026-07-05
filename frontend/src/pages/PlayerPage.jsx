@@ -181,6 +181,30 @@ export default function PlayerPage() {
 
         playerRef.current = plyr
 
+        // Double tap to seek for touch devices
+        plyr.on('ready', () => {
+            const container = plyr.elements.container
+            if (container) {
+                let lastTapTime = 0
+                container.addEventListener('touchend', (e) => {
+                    const now = Date.now()
+                    const timeDiff = now - lastTapTime
+                    if (timeDiff < 300 && timeDiff > 0) {
+                        const rect = container.getBoundingClientRect()
+                        const touch = e.changedTouches[0]
+                        const x = touch.clientX - rect.left
+                        if (x < rect.width / 2) {
+                            plyr.rewind(10)
+                        } else {
+                            plyr.forward(10)
+                        }
+                        e.preventDefault()
+                    }
+                    lastTapTime = now
+                })
+            }
+        })
+
         return () => {
             if (playerRef.current) {
                 try {
