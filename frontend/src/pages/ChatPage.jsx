@@ -88,7 +88,7 @@ export default function ChatPage() {
     }
 
     return (
-        <div className="pt-24 pb-20 px-4 sm:px-8 max-w-5xl mx-auto min-h-screen flex flex-col">
+        <div className="pt-20 sm:pt-24 pb-2 sm:pb-8 px-2 sm:px-8 max-w-5xl mx-auto h-[calc(100dvh-80px)] sm:h-[100dvh] flex flex-col">
             <div className="flex justify-between items-end mb-4">
                 <div>
                     <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-pink-500">
