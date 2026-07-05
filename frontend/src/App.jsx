@@ -10,7 +10,7 @@ import { ToastProvider } from './components/Toast'
 
 function PageWrapper({ children }) {
     return (
-        <div className="page-wrapper">
+        <div className="page-wrapper mobile-bottom-nav-padding">
             {children}
         </div>
     )

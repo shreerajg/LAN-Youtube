@@ -145,8 +145,8 @@ export default function VideoCard({ video, style, onAddToPlaylist, onFavoriteTog
                 {/* Favorite heart button */}
                 <button
                     onClick={handleFavClick}
-                    className={`absolute bottom-7 right-2 w-7 h-7 rounded-lg flex items-center justify-center transition-all z-10
-                        opacity-0 group-hover:opacity-100 backdrop-blur-sm
+                    className={`absolute bottom-7 right-2 w-10 h-10 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center transition-all z-10
+                        opacity-100 sm:opacity-0 group-hover:opacity-100 backdrop-blur-sm
                         ${isFav
                             ? 'opacity-100 bg-red-500/80 hover:bg-red-500 text-white'
                             : 'bg-black/60 hover:bg-red-500/70 text-slate-300 hover:text-white'
@@ -163,8 +163,8 @@ export default function VideoCard({ video, style, onAddToPlaylist, onFavoriteTog
                 {onAddToPlaylist && (
                     <button
                         onClick={handleAddClick}
-                        className="absolute bottom-2 right-2 w-8 h-8 rounded-lg bg-black/60 hover:bg-violet-600 text-white
-                            flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 backdrop-blur-sm"
+                        className="absolute bottom-2 right-2 w-10 h-10 sm:w-8 sm:h-8 rounded-lg bg-black/60 hover:bg-violet-600 text-white
+                            flex items-center justify-center transition-all opacity-100 sm:opacity-0 group-hover:opacity-100 backdrop-blur-sm"
                         title="Add to playlist"
                     >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -275,10 +275,10 @@ export function VideoListCard({ video, style, onFavoriteToggle }) {
             <div className="shrink-0 flex items-center gap-2">
                 <button
                     onClick={handleFavClick}
-                    className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all
+                    className={`w-10 h-10 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center transition-all
                         ${isFav
-                            ? 'text-red-400 hover:text-red-300'
-                            : 'text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100'
+                            ? 'text-red-400 hover:text-red-300 opacity-100'
+                            : 'text-slate-600 hover:text-red-400 opacity-100 sm:opacity-0 group-hover:opacity-100'
                         } ${heartAnim ? 'heart-pop' : ''}`}
                     title={isFav ? 'Remove from favorites' : 'Add to favorites'}
                 >
