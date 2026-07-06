@@ -99,8 +99,9 @@ body {
 }
 
 .glass-card:hover {
-  border-color: rgba(139, 92, 246, 0.3);
-  box-shadow: 0 0 40px rgba(139, 92, 246, 0.12);
+  border-color: rgba(139, 92, 246, 0.4);
+  box-shadow: 0 0 40px rgba(139, 92, 246, 0.15), 0 10px 25px rgba(0,0,0,0.5);
+  transform: translateY(-3px);
 }
 
 /* ── Gradient Text ── */
@@ -159,9 +160,10 @@ body {
 
 .video-card:hover {
   transform: translateY(-8px) scale(1.03);
-  box-shadow: 0 30px 60px rgba(139, 92, 246, 0.4),
-    0 0 0 1px rgba(139, 92, 246, 0.5);
-  border-color: rgba(139, 92, 246, 0.6);
+  box-shadow: 0 30px 60px rgba(139, 92, 246, 0.45),
+    0 0 40px rgba(139, 92, 246, 0.25),
+    0 0 0 1px rgba(139, 92, 246, 0.6);
+  border-color: rgba(139, 92, 246, 0.7);
   z-index: 10;
 }
 
@@ -786,13 +788,7 @@ body {
   opacity: 1;
 }
 
-.video-card:hover {
-  transform: translateY(-6px) scale(1.02);
-  box-shadow: 0 25px 50px rgba(139, 92, 246, 0.35),
-    0 0 30px rgba(139, 92, 246, 0.2);
-  border-color: rgba(139, 92, 246, 0.5);
-  z-index: 10;
-}
+
 
 /* ── Theatre / Ambient Mode ── */
 .theatre-mode-bg {
