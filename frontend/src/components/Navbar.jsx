@@ -133,10 +133,11 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
                         {/* Files */}
                         <Link
                             to="/files"
-                            className="flex items-center justify-center gap-2 px-3 py-2.5 sm:px-4 text-sm font-semibold rounded-xl
-                                bg-emerald-500/10 text-emerald-400 border border-emerald-500/15
-                                hover:bg-emerald-500/20 hover:border-emerald-500/30 hover:text-emerald-300
-                                transition-all duration-300 min-w-[70px] sm:min-w-0"
+                            className={`flex items-center justify-center gap-2 px-3 py-2.5 sm:px-4 text-sm font-semibold rounded-xl transition-all duration-300 min-w-[70px] sm:min-w-0 border ${
+                                location.pathname === '/files'
+                                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.2)]'
+                                : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/15 hover:bg-emerald-500/20 hover:border-emerald-500/30 hover:text-emerald-300'
+                            }`}
                             title="LAN File Share"
                         >
                             <span className="sm:inline">Files</span>
@@ -145,10 +146,11 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
                         {/* Chat */}
                         <Link
                             to="/chat"
-                            className="flex items-center justify-center gap-2 px-3 py-2.5 sm:px-4 text-sm font-semibold rounded-xl
-                                bg-pink-500/10 text-pink-400 border border-pink-500/15
-                                hover:bg-pink-500/20 hover:border-pink-500/30 hover:text-pink-300
-                                transition-all duration-300 min-w-[70px] sm:min-w-0"
+                            className={`flex items-center justify-center gap-2 px-3 py-2.5 sm:px-4 text-sm font-semibold rounded-xl transition-all duration-300 min-w-[70px] sm:min-w-0 border ${
+                                location.pathname === '/chat'
+                                ? 'bg-pink-500/20 text-pink-300 border-pink-500/40 shadow-[0_0_15px_rgba(236,72,153,0.2)]'
+                                : 'bg-pink-500/10 text-pink-400 border-pink-500/15 hover:bg-pink-500/20 hover:border-pink-500/30 hover:text-pink-300'
+                            }`}
                             title="LAN Chat"
                         >
                             <span className="sm:inline">Chat</span>
@@ -157,10 +159,11 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
                         {/* LAN */}
                         <Link
                             to="/lan"
-                            className="flex items-center justify-center gap-2 px-3 py-2.5 sm:px-4 text-sm font-semibold rounded-xl
-                                bg-blue-500/10 text-blue-400 border border-blue-500/15
-                                hover:bg-blue-500/20 hover:border-blue-500/30 hover:text-blue-300
-                                transition-all duration-300 min-w-[70px] sm:min-w-0"
+                            className={`flex items-center justify-center gap-2 px-3 py-2.5 sm:px-4 text-sm font-semibold rounded-xl transition-all duration-300 min-w-[70px] sm:min-w-0 border ${
+                                location.pathname === '/lan'
+                                ? 'bg-blue-500/20 text-blue-300 border-blue-500/40 shadow-[0_0_15px_rgba(59,130,246,0.2)]'
+                                : 'bg-blue-500/10 text-blue-400 border-blue-500/15 hover:bg-blue-500/20 hover:border-blue-500/30 hover:text-blue-300'
+                            }`}
                             title="LAN Dashboard"
                         >
                             <span className="sm:inline">LAN</span>
@@ -170,10 +173,11 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
                         <Link
                             id="history-nav-btn"
                             to="/history"
-                            className="flex items-center justify-center gap-2 px-3 py-2.5 sm:px-4 text-sm font-semibold rounded-xl
-                                bg-slate-500/10 text-slate-400 border border-slate-500/15
-                                hover:bg-slate-500/20 hover:border-slate-500/30 hover:text-slate-200
-                                transition-all duration-300 min-w-[70px] sm:min-w-0"
+                            className={`flex items-center justify-center gap-2 px-3 py-2.5 sm:px-4 text-sm font-semibold rounded-xl transition-all duration-300 min-w-[70px] sm:min-w-0 border ${
+                                location.pathname === '/history'
+                                ? 'bg-slate-500/20 text-slate-200 border-slate-500/40 shadow-[0_0_15px_rgba(148,163,184,0.2)]'
+                                : 'bg-slate-500/10 text-slate-400 border-slate-500/15 hover:bg-slate-500/20 hover:border-slate-500/30 hover:text-slate-200'
+                            }`}
                             title="Watch History"
                         >
                             <svg className="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
