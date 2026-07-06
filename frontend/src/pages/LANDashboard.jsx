@@ -85,105 +85,130 @@ export default function LANDashboard() {
     }
 
     return (
-        <div className="pt-20 sm:pt-24 pb-6 sm:pb-8 px-4 sm:px-8 max-w-7xl mx-auto min-h-screen">
-            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500 mb-2">
+        <div className="pt-24 pb-8 px-4 sm:px-8 max-w-7xl mx-auto min-h-screen">
+            <h1 className="text-4xl font-black font-['Space_Grotesk'] text-white tracking-tight mb-2">
                 LAN Dashboard
             </h1>
-            <p className="text-muted text-sm mb-8">Manage devices and synchronize clipboard across your network.</p>
+            <p className="text-slate-400 text-sm mb-8 font-medium">Manage devices and synchronize clipboard across your network.</p>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-min">
                 
-                {/* Left Column: Server Info & QR Code */}
-                <div className="flex flex-col gap-6">
-                    <div className="bg-surface rounded-2xl border border-border p-6 shadow-xl relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 blur-3xl rounded-full -mr-10 -mt-10 group-hover:bg-cyan-500/20 transition-all"></div>
-                        <h2 className="text-xl font-bold text-text mb-4">Connect Device</h2>
-                        
-                        <div className="flex justify-center mb-6 bg-white p-4 rounded-xl w-48 mx-auto">
-                            {info ? (
-                                <img src="/api/lan/qrcode" alt="QR Code" className="w-full h-auto" />
-                            ) : (
-                                <div className="w-full aspect-square bg-gray-200 animate-pulse rounded-lg"></div>
-                            )}
-                        </div>
-
-                        <div className="text-center">
-                            <p className="text-sm text-muted mb-1">Or open this URL on any LAN device:</p>
-                            <a 
-                                href={info?.url} 
-                                target="_blank" 
-                                rel="noreferrer"
-                                className="text-lg font-mono text-cyan-400 hover:text-cyan-300 transition-colors"
-                            >
-                                {info?.url || 'Loading...'}
-                            </a>
-                        </div>
+                {/* Bento Item: Connect Device (Takes 1 column) */}
+                <div className="glass-card rounded-3xl p-6 relative overflow-hidden group col-span-1 md:col-span-1 lg:col-span-1 flex flex-col items-center justify-center min-h-[300px]">
+                    <div className="absolute top-0 right-0 w-48 h-48 bg-cyan-500/20 blur-[60px] rounded-full -mr-10 -mt-10 group-hover:bg-cyan-500/30 transition-all duration-700"></div>
+                    <div className="absolute bottom-0 left-0 w-32 h-32 bg-violet-500/10 blur-[50px] rounded-full transition-all duration-700 group-hover:bg-violet-500/20"></div>
+                    
+                    <h2 className="text-lg font-bold text-white mb-6 relative z-10 font-['Space_Grotesk'] flex items-center gap-2">
+                        <svg className="w-5 h-5 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                        </svg>
+                        Connect Device
+                    </h2>
+                    
+                    <div className="relative z-10 flex justify-center mb-6 bg-white p-3 rounded-2xl w-48 shadow-[0_0_30px_rgba(6,182,212,0.15)] group-hover:shadow-[0_0_40px_rgba(6,182,212,0.3)] transition-shadow duration-300">
+                        {info ? (
+                            <img src="/api/lan/qrcode" alt="QR Code" className="w-full h-auto rounded-lg" />
+                        ) : (
+                            <div className="w-full aspect-square bg-gray-100 animate-pulse rounded-lg"></div>
+                        )}
                     </div>
 
-                    <div className="bg-surface rounded-2xl border border-border p-6 shadow-xl">
-                        <h2 className="text-xl font-bold text-text mb-4">Server Stats</h2>
-                        <div className="space-y-4">
-                            <div className="flex justify-between items-center pb-2 border-b border-border border-dashed">
-                                <span className="text-muted">Uptime</span>
-                                <span className="font-mono text-text">{info?.uptime || '...'}</span>
-                            </div>
-                            <div className="flex justify-between items-center pb-2 border-b border-border border-dashed">
-                                <span className="text-muted">Online Users (Chat)</span>
-                                <span className="font-mono text-neon3">{info?.online_users ?? '...'}</span>
-                            </div>
-                            <div className="flex justify-between items-center pb-2 border-b border-border border-dashed">
-                                <span className="text-muted">Total Videos</span>
-                                <span className="font-mono text-text">{info?.total_videos ?? '...'}</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <span className="text-muted">Shared Files</span>
-                                <span className="font-mono text-text">{info?.shared_files ?? '...'}</span>
-                            </div>
+                    <div className="text-center relative z-10">
+                        <p className="text-xs text-slate-400 mb-1.5 uppercase tracking-wider font-semibold">Or open this URL:</p>
+                        <a 
+                            href={info?.url} 
+                            target="_blank" 
+                            rel="noreferrer"
+                            className="inline-block px-4 py-2 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-sm font-mono text-cyan-400 hover:bg-cyan-500/20 hover:text-cyan-300 transition-colors"
+                        >
+                            {info?.url || 'Loading...'}
+                        </a>
+                    </div>
+                </div>
+
+                {/* Bento Item: Server Stats (Takes 1 column) */}
+                <div className="glass-card rounded-3xl p-6 relative overflow-hidden group col-span-1 md:col-span-1 lg:col-span-1 flex flex-col justify-between">
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-violet-600/5 blur-[80px] rounded-full group-hover:bg-violet-600/10 transition-colors duration-700"></div>
+                    
+                    <h2 className="text-lg font-bold text-white mb-6 relative z-10 font-['Space_Grotesk'] flex items-center gap-2">
+                        <svg className="w-5 h-5 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
+                        </svg>
+                        Server Stats
+                    </h2>
+                    
+                    <div className="space-y-3 relative z-10 flex-1 flex flex-col justify-center">
+                        <div className="flex justify-between items-center p-3 rounded-xl bg-white/5 border border-white/5 hover:border-violet-500/20 transition-colors">
+                            <span className="text-slate-400 text-sm font-medium">Uptime</span>
+                            <span className="font-mono text-white text-sm bg-violet-500/10 px-2 py-0.5 rounded-md text-violet-300">{info?.uptime || '...'}</span>
+                        </div>
+                        <div className="flex justify-between items-center p-3 rounded-xl bg-white/5 border border-white/5 hover:border-pink-500/20 transition-colors">
+                            <span className="text-slate-400 text-sm font-medium">Online Users (Chat)</span>
+                            <span className="font-mono text-white text-sm bg-pink-500/10 px-2 py-0.5 rounded-md text-pink-400">{info?.online_users ?? '...'}</span>
+                        </div>
+                        <div className="flex justify-between items-center p-3 rounded-xl bg-white/5 border border-white/5 hover:border-emerald-500/20 transition-colors">
+                            <span className="text-slate-400 text-sm font-medium">Total Videos</span>
+                            <span className="font-mono text-white text-sm bg-emerald-500/10 px-2 py-0.5 rounded-md text-emerald-400">{info?.total_videos ?? '...'}</span>
+                        </div>
+                        <div className="flex justify-between items-center p-3 rounded-xl bg-white/5 border border-white/5 hover:border-blue-500/20 transition-colors">
+                            <span className="text-slate-400 text-sm font-medium">Shared Files</span>
+                            <span className="font-mono text-white text-sm bg-blue-500/10 px-2 py-0.5 rounded-md text-blue-400">{info?.shared_files ?? '...'}</span>
                         </div>
                     </div>
                 </div>
 
-                {/* Middle Column: Device Discovery */}
-                <div className="bg-surface rounded-2xl border border-border p-6 shadow-xl flex flex-col max-h-[80vh]">
-                    <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-xl font-bold text-text">LAN Devices</h2>
+                {/* Bento Item: LAN Devices (Takes 1 or 2 columns based on screen) */}
+                <div className="glass-card rounded-3xl p-6 shadow-xl flex flex-col md:col-span-2 lg:col-span-1 max-h-[450px]">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-lg font-bold text-white font-['Space_Grotesk'] flex items-center gap-2">
+                            <svg className="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                            </svg>
+                            Network Devices
+                        </h2>
                         <button 
                             onClick={fetchDevices}
                             disabled={scanning}
-                            className={`text-sm px-3 py-1.5 rounded-lg font-medium transition-colors ${
+                            className={`text-xs px-3 py-1.5 rounded-lg font-bold uppercase tracking-wider transition-all duration-300 ${
                                 scanning 
-                                ? 'bg-surface2 text-muted cursor-not-allowed' 
-                                : 'bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30'
+                                ? 'bg-white/5 text-slate-500 cursor-not-allowed' 
+                                : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 hover:border-emerald-500/40'
                             }`}
                         >
-                            {scanning ? 'Scanning Subnet...' : 'Rescan Network'}
+                            {scanning ? 'Scanning...' : 'Rescan'}
                         </button>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto pr-2 space-y-3">
+                    <div className="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar">
                         {scanning && devices.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center h-full text-muted space-y-4 pt-10">
-                                <div className="w-8 h-8 border-2 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin"></div>
-                                <p className="text-sm">Pinging 254 addresses on your subnet. This may take ~10 seconds...</p>
+                            <div className="flex flex-col items-center justify-center h-full text-slate-400 space-y-4">
+                                <div className="w-8 h-8 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin"></div>
+                                <p className="text-sm text-center">Pinging 254 addresses...<br/><span className="text-xs text-slate-500">Takes about 10 seconds</span></p>
                             </div>
                         ) : devices.length === 0 ? (
-                            <div className="text-center text-muted pt-10">No other devices found on this subnet.</div>
+                            <div className="flex items-center justify-center h-full text-slate-500 text-sm">No other devices found.</div>
                         ) : (
                             devices.map((dev, i) => (
-                                <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-surface2 border border-border hover:border-cyan-500/30 transition-colors">
+                                <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/5 hover:border-emerald-500/20 hover:bg-emerald-500/5 transition-all group">
                                     <div className="flex items-center gap-3">
-                                        <div className="text-2xl">{dev.is_server ? '🖥️' : '📱'}</div>
+                                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center border ${dev.is_server ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-white/5 border-white/10 text-slate-400'}`}>
+                                            {dev.is_server ? (
+                                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" /></svg>
+                                            ) : (
+                                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                                            )}
+                                        </div>
                                         <div>
-                                            <div className="font-medium text-sm text-text flex items-center gap-2">
+                                            <div className="font-semibold text-sm text-white flex items-center gap-2">
                                                 {dev.ip}
-                                                {dev.is_server && <span className="text-[10px] bg-cyan-500/20 text-cyan-400 px-1.5 py-0.5 rounded text-xs uppercase tracking-wider font-bold">This Server</span>}
+                                                {dev.is_server && <span className="text-[9px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded uppercase tracking-wider font-bold">Host</span>}
                                             </div>
-                                            <div className="text-xs text-muted truncate max-w-[150px]" title={dev.hostname}>
+                                            <div className="text-xs text-slate-400 truncate max-w-[140px]" title={dev.hostname}>
                                                 {dev.hostname !== dev.ip ? dev.hostname : 'Unknown Hostname'}
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="text-xs font-mono text-green-400 bg-green-400/10 px-2 py-1 rounded">
+                                    <div className="text-xs font-mono font-medium text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-2 py-1 rounded-md">
                                         {dev.ping_ms}ms
                                     </div>
                                 </div>
