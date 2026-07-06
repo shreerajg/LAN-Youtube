@@ -59,14 +59,13 @@ function StatCounter({ value, label, color, icon }) {
         return () => clearInterval(timer)
     }, [value])
 
-    return (
-        <div className="glass-card rounded-2xl px-5 py-4 flex items-center gap-4 animate-slide-up hover:scale-105 transition-all duration-300 cursor-default group">
-            <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl ${color.replace('text-', 'bg-').replace('400', '500/10')} group-hover:scale-110 transition-transform duration-300`}>
-                {icon}
+        <div className="glass-card rounded-2xl px-6 py-4 flex items-center gap-4 animate-slide-up hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 cursor-default group flex-1 min-w-[140px]">
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-inner ${color.replace('text-', 'bg-').replace('400', '500/15')} border border-white/5 group-hover:scale-110 transition-transform duration-300`}>
+                <span className={color}>{icon}</span>
             </div>
             <div>
-                <p className={`text-2xl font-black font-['Space_Grotesk'] ${color}`}>{display}</p>
-                <p className="text-[11px] text-slate-500 font-medium uppercase tracking-wider">{label}</p>
+                <p className={`text-3xl font-black font-['Space_Grotesk'] ${color}`}>{display}</p>
+                <p className="text-xs text-slate-400 font-bold uppercase tracking-[0.1em]">{label}</p>
             </div>
         </div>
     )
@@ -78,75 +77,85 @@ function HeroSection({ videos, stats }) {
     const featured = videos.find(v => v.duration > 60) || videos[0]
 
     return (
-        <div className="relative overflow-hidden rounded-3xl mb-10 hero-gradient border border-white/[0.06] animate-fade-in shadow-2xl shadow-violet-900/10">
-            <div className="absolute inset-0 bg-gradient-to-br from-violet-900/5 via-transparent to-cyan-900/5" />
+        <div className="relative overflow-hidden rounded-[2.5rem] mb-12 hero-gradient border border-white/10 animate-fade-in shadow-[0_20px_60px_-15px_rgba(139,92,246,0.3)]">
+            <div className="absolute inset-0 bg-gradient-to-br from-violet-900/10 via-transparent to-cyan-900/10" />
+            
+            <div className="absolute -top-32 -left-32 w-96 h-96 bg-violet-600/30 rounded-full blur-[100px] pointer-events-none mix-blend-screen" />
+            <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-cyan-600/20 rounded-full blur-[100px] pointer-events-none mix-blend-screen" />
+
             {featured && (
-                <div className="absolute inset-0 opacity-20">
-                    <img src={featured.thumbnail_url} alt="" className="w-full h-full object-cover"
-                        style={{ filter: 'blur(35px)', transform: 'scale(1.4)' }} />
-                    <div className="absolute inset-0 bg-gradient-to-r from-[#06060f] via-[#06060f]/85 to-[#06060f]/65" />
+                <div className="absolute inset-0 opacity-30">
+                    <img src={featured.thumbnail_url} alt="" className="w-full h-full object-cover mix-blend-overlay"
+                        style={{ filter: 'blur(40px)', transform: 'scale(1.2)' }} />
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#06060f] via-[#06060f]/80 to-[#06060f]/40" />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#06060f] via-transparent to-transparent" />
                 </div>
             )}
 
-            <div className="relative flex flex-col lg:flex-row items-center gap-8 px-6 py-10 lg:px-12 lg:py-12">
+            <div className="relative flex flex-col lg:flex-row items-center gap-10 px-8 py-12 lg:px-16 lg:py-20">
                 {/* Left side */}
-                <div className="flex-1 space-y-6 text-center lg:text-left">
+                <div className="flex-1 space-y-8 text-center lg:text-left z-10">
                     <div>
-                        <p className="text-xs text-violet-400 font-black uppercase tracking-[0.25em] mb-3 flex items-center justify-center lg:justify-start gap-2">
-                            <span className="w-4 h-px bg-violet-500 inline-block" />
-                            PHANTOM · MEDIA CORE
-                            <span className="w-4 h-px bg-violet-500 inline-block" />
-                        </p>
-                        <h1 className="text-4xl lg:text-6xl font-black font-['Space_Grotesk'] text-white leading-[1.05]">
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-500/10 border border-violet-500/20 mb-6 backdrop-blur-md">
+                            <span className="w-2 h-2 rounded-full bg-violet-500 animate-pulse" />
+                            <span className="text-[10px] text-violet-300 font-bold uppercase tracking-[0.2em]">Phantom Media Core</span>
+                        </div>
+                        <h1 className="text-5xl lg:text-7xl font-black font-['Space_Grotesk'] text-white leading-[1.05] tracking-tight">
                             Stream
                         </h1>
-                        <h1 className="text-4xl lg:text-6xl font-black font-['Space_Grotesk'] leading-[1.05]">
-                            <span className="gradient-text typing-cursor">{typedText}</span>
+                        <h1 className="text-5xl lg:text-7xl font-black font-['Space_Grotesk'] leading-[1.05] tracking-tight mt-2">
+                            <span className="bg-clip-text text-transparent bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-400 typing-cursor">{typedText}</span>
                         </h1>
                     </div>
 
                     {stats && (
-                        <div className="grid grid-cols-3 gap-3 max-w-sm mx-auto lg:mx-0">
-                            <StatCounter value={stats.total_videos} label="Videos" color="text-violet-400" icon="🎬" />
-                            <StatCounter value={stats.total_size_gb} label="GB" color="text-cyan-400" icon="💾" />
-                            <StatCounter value={stats.categories?.length || 0} label="Genres" color="text-amber-400" icon="🎭" />
+                        <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4">
+                            <StatCounter value={stats.total_videos} label="Videos" color="text-violet-400" icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" /></svg>} />
+                            <StatCounter value={stats.total_size_gb} label="GB" color="text-cyan-400" icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" /></svg>} />
+                            <StatCounter value={stats.categories?.length || 0} label="Genres" color="text-amber-400" icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>} />
                         </div>
                     )}
 
                     {!stats || stats.total_videos === 0 ? (
-                        <div className="flex items-center justify-center lg:justify-start gap-2 text-sm text-slate-500">
-                            <svg className="w-4 h-4 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                    d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 110 20A10 10 0 0112 2z" />
+                        <div className="flex items-center justify-center lg:justify-start gap-2 text-sm text-slate-400 bg-white/5 w-fit mx-auto lg:mx-0 px-4 py-2 rounded-lg border border-white/10">
+                            <svg className="w-5 h-5 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 110 20A10 10 0 0112 2z" />
                             </svg>
-                            Click <strong className="text-violet-400 mx-1">+ Add Folder</strong> to add movies from any drive
+                            Click <strong className="text-violet-300 mx-1">+ Add Folder</strong> to add movies from any drive
                         </div>
                     ) : null}
                 </div>
 
                 {/* Featured card */}
                 {featured && (
-                    <div className="w-full lg:w-72 shrink-0">
-                        <p className="text-[10px] text-violet-400 font-black uppercase tracking-widest mb-2 text-center">🎯 Featured</p>
-                        <a href={`/player/${featured.id}`}
-                            className="block relative rounded-2xl overflow-hidden cursor-pointer group
-                                ring-1 ring-violet-500/30 shadow-2xl shadow-violet-900/40
-                                hover:ring-violet-400/60 hover:shadow-violet-500/30 transition-all duration-300">
-                            <img src={featured.thumbnail_url} alt=""
-                                className="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-500" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
-                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-violet-600 to-violet-500 flex items-center justify-center shadow-2xl shadow-violet-500/50 animate-pulse">
-                                    <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M8 5v14l11-7z" />
-                                    </svg>
+                    <div className="w-full lg:w-[340px] shrink-0 z-10">
+                        <div className="relative group">
+                            <div className="absolute -inset-1 bg-gradient-to-r from-violet-600 to-cyan-600 rounded-3xl blur opacity-20 group-hover:opacity-50 transition duration-500" />
+                            <a href={`/player/${featured.id}`}
+                                className="block relative rounded-2xl overflow-hidden cursor-pointer
+                                    bg-[#0d0d1f] border border-white/10 shadow-2xl
+                                    transform transition-all duration-500 hover:scale-[1.02] hover:-rotate-1">
+                                <div className="absolute top-3 left-3 z-20 px-2.5 py-1 rounded-md bg-black/60 backdrop-blur-md border border-white/10 flex items-center gap-1.5 text-[10px] text-violet-300 font-bold uppercase tracking-wider">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" />
+                                    Featured
                                 </div>
-                            </div>
-                            <p className="absolute bottom-0 left-0 right-0 p-4 text-white font-semibold text-sm line-clamp-1">
-                                {featured.filename.replace(/\.[^/.]+$/, '')}
-                            </p>
-                        </a>
+                                <img src={featured.thumbnail_url} alt=""
+                                    className="w-full aspect-video object-cover group-hover:scale-110 transition-transform duration-700" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-[#06060f] via-[#06060f]/20 to-transparent opacity-90" />
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center transform group-hover:scale-110 transition-all duration-300 shadow-[0_0_30px_rgba(139,92,246,0.3)]">
+                                        <svg className="w-8 h-8 text-white ml-1 drop-shadow-md" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M8 5v14l11-7z" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div className="absolute bottom-0 left-0 right-0 p-5">
+                                    <p className="text-white font-bold text-lg leading-tight line-clamp-1 drop-shadow-md">
+                                        {featured.filename.replace(/\.[^/.]+$/, '')}
+                                    </p>
+                                </div>
+                            </a>
+                        </div>
                     </div>
                 )}
             </div>
