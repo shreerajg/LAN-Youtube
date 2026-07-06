@@ -52,10 +52,17 @@ def scan_library() -> dict:
     try:
         # Collect all folders to scan
         watched = db.query(WatchedFolder).all()
-        scan_dirs = [(None, os.path.abspath(DEFAULT_MEDIA_DIR))]
+        scan_dirs = []
+        available_folder_ids = set()
+        
+        if os.path.isdir(DEFAULT_MEDIA_DIR):
+            scan_dirs.append((None, os.path.abspath(DEFAULT_MEDIA_DIR)))
+            available_folder_ids.add(None)
+
         for w in watched:
             if os.path.isdir(w.path):
                 scan_dirs.append((w.id, w.path))
+                available_folder_ids.add(w.id)
 
         # Build existing path map: abs_path -> video_id
         existing = {row.path: row.id for row in db.query(Video).with_entities(Video.path, Video.id).all()}
@@ -79,45 +86,50 @@ def scan_library() -> dict:
                         skipped += 1
                         continue
 
-                    file_size = os.path.getsize(abs_path)
-                    duration = get_duration(abs_path)
-                    resolution = get_resolution(abs_path)
+                    try:
+                        file_size = os.path.getsize(abs_path)
+                        duration = get_duration(abs_path)
+                        resolution = get_resolution(abs_path)
 
-                    # Category: subfolder name relative to scan_dir, or "Uncategorized"
-                    rel = os.path.relpath(abs_path, scan_dir)
-                    parts = rel.split(os.sep)
-                    category = parts[0] if len(parts) > 1 else "Uncategorized"
+                        # Category: subfolder name relative to scan_dir, or "Uncategorized"
+                        rel = os.path.relpath(abs_path, scan_dir)
+                        parts = rel.split(os.sep)
+                        category = parts[0] if len(parts) > 1 else "Uncategorized"
 
-                    video = Video(
-                        filename=fname,
-                        path=abs_path,
-                        size=file_size,
-                        duration=duration,
-                        category=category,
-                        folder_id=folder_id,
-                        date_added=datetime.utcnow(),
-                        watch_progress_secs=0,
-                        is_favorite=False,
-                        resolution=resolution,
-                    )
-                    db.add(video)
-                    db.flush()
+                        video = Video(
+                            filename=fname,
+                            path=abs_path,
+                            size=file_size,
+                            duration=duration,
+                            category=category,
+                            folder_id=folder_id,
+                            date_added=datetime.utcnow(),
+                            watch_progress_secs=0,
+                            is_favorite=False,
+                            resolution=resolution,
+                        )
+                        db.add(video)
+                        db.flush()
 
-                    thumb = generate_thumbnail(abs_path, video.id)
-                    video.thumbnail_path = thumb
-                    db.add(video)
-                    db.commit()
-                    added += 1
-                    print(f"[scanner] Added: {fname} ({resolution or 'unknown res'})")
+                        thumb = generate_thumbnail(abs_path, video.id)
+                        video.thumbnail_path = thumb
+                        db.add(video)
+                        db.commit()
+                        added += 1
+                        print(f"[scanner] Added: {fname} ({resolution or 'unknown res'})")
+                    except Exception as e:
+                        db.rollback()
+                        print(f"[scanner] Error processing {fname}: {e}")
 
-        # Remove stale entries (file deleted from disk)
+        # Remove stale entries (file deleted from disk, but its root folder is available)
         all_videos = db.query(Video).all()
         removed = 0
         for v in all_videos:
-            if not os.path.exists(v.path):
-                db.delete(v)
-                removed += 1
-                print(f"[scanner] Removed stale: {v.filename}")
+            if v.folder_id in available_folder_ids:
+                if not os.path.exists(v.path):
+                    db.delete(v)
+                    removed += 1
+                    print(f"[scanner] Removed stale: {v.filename}")
         if removed:
             db.commit()
 
