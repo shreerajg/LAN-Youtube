@@ -123,24 +123,24 @@ export default function FilesPage() {
     }
 
     return (
-        <div className="pt-20 sm:pt-24 pb-6 sm:pb-8 px-4 sm:px-8 max-w-7xl mx-auto min-h-screen flex flex-col">
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
+        <div className="pt-24 pb-8 px-4 sm:px-8 max-w-7xl mx-auto min-h-screen flex flex-col">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-6">
                 <div>
-                    <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-cyan-400">
+                    <h1 className="text-4xl font-black font-['Space_Grotesk'] text-white tracking-tight mb-2">
                         LAN File Share
                     </h1>
-                    <p className="text-muted text-sm mt-2">Upload and download files across your local network.</p>
+                    <p className="text-slate-400 text-sm font-medium">Upload and download files across your local network.</p>
                 </div>
                 
-                <div className="flex gap-2 bg-surface2 p-1 rounded-xl border border-border overflow-x-auto hide-scrollbar w-full sm:w-auto">
+                <div className="flex gap-2 bg-white/[0.03] p-1.5 rounded-2xl border border-white/5 overflow-x-auto hide-scrollbar w-full sm:w-auto shadow-inner backdrop-blur-md">
                     {['all', 'image', 'video', 'document', 'archive', 'other'].map(c => (
                         <button
                             key={c}
                             onClick={() => setCategory(c)}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 whitespace-nowrap ${
                                 category === c 
-                                ? 'bg-neon/20 text-neon' 
-                                : 'text-muted hover:text-text hover:bg-surface'
+                                ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 shadow-[0_0_15px_rgba(99,102,241,0.2)]' 
+                                : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'
                             }`}
                         >
                             {c.charAt(0).toUpperCase() + c.slice(1)}
@@ -151,11 +151,13 @@ export default function FilesPage() {
 
             {/* Dropzone */}
             <div 
-                className="mb-8 border-2 border-dashed border-border rounded-2xl py-12 px-6 sm:p-10 flex flex-col items-center justify-center text-center hover:border-cyan-500/50 hover:bg-cyan-500/5 transition-all cursor-pointer relative overflow-hidden"
+                className="mb-10 glass-card border-2 border-dashed border-indigo-500/20 rounded-3xl py-14 px-6 sm:p-12 flex flex-col items-center justify-center text-center hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all duration-300 cursor-pointer relative overflow-hidden group shadow-[0_0_30px_rgba(0,0,0,0.2)]"
                 onDrop={onDrop}
                 onDragOver={onDragOver}
                 onClick={() => !uploading && fileInputRef.current?.click()}
             >
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-indigo-500/0 blur-[100px] rounded-full group-hover:bg-indigo-500/10 transition-colors duration-700"></div>
+
                 <input 
                     type="file" 
                     className="hidden" 
@@ -164,69 +166,80 @@ export default function FilesPage() {
                 />
                 
                 {uploading ? (
-                    <div className="w-full max-w-md">
-                        <div className="flex justify-between text-sm mb-2">
-                            <span className="text-cyan-400">Uploading...</span>
-                            <span className="text-text">{uploadProgress}%</span>
+                    <div className="w-full max-w-md relative z-10">
+                        <div className="flex justify-between text-sm mb-3 font-semibold tracking-wide uppercase">
+                            <span className="text-indigo-400">Uploading...</span>
+                            <span className="text-white">{uploadProgress}%</span>
                         </div>
-                        <div className="h-2 bg-surface2 rounded-full overflow-hidden">
+                        <div className="h-3 bg-white/5 rounded-full overflow-hidden p-0.5 border border-white/10 shadow-inner">
                             <div 
-                                className="h-full bg-gradient-to-r from-violet-500 to-cyan-500 transition-all duration-300"
+                                className="h-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 rounded-full transition-all duration-300 shadow-[0_0_10px_rgba(99,102,241,0.5)]"
                                 style={{ width: `${uploadProgress}%` }}
                             />
                         </div>
                     </div>
                 ) : (
-                    <>
-                        <div className="w-16 h-16 rounded-full bg-surface2 flex items-center justify-center mb-4 text-3xl">
+                    <div className="relative z-10 flex flex-col items-center">
+                        <div className="w-20 h-20 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-center mb-6 text-4xl shadow-xl group-hover:scale-110 group-hover:-translate-y-2 transition-transform duration-500">
                             📤
                         </div>
-                        <h3 className="text-lg font-medium text-text mb-1">Click or drag files here</h3>
-                        <p className="text-sm text-muted">Supports any file type. No size limit.</p>
-                    </>
+                        <h3 className="text-xl font-bold text-white mb-2 font-['Space_Grotesk']">Click or drag files here</h3>
+                        <p className="text-sm text-slate-400 font-medium">Supports any file type. No size limit.</p>
+                    </div>
                 )}
             </div>
 
             {/* Files Grid */}
             {loading ? (
                 <div className="flex-1 flex items-center justify-center">
-                    <div className="w-8 h-8 border-4 border-surface2 border-t-neon rounded-full animate-spin"></div>
+                    <div className="w-10 h-10 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin"></div>
                 </div>
             ) : files.length === 0 ? (
-                <div className="flex-1 flex flex-col items-center justify-center text-muted">
-                    <div className="text-6xl mb-4 opacity-50">📂</div>
-                    <p>No files found in this category.</p>
+                <div className="flex-1 flex flex-col items-center justify-center text-slate-500 mt-10">
+                    <div className="text-6xl mb-6 opacity-30 grayscale filter blur-[1px]">📂</div>
+                    <p className="font-medium">No files found in this category.</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {files.map(file => (
                         <a
                             key={file.id}
                             href={file.download_url}
                             download={file.filename}
-                            className="bg-surface rounded-xl p-4 border border-border hover:border-violet-500/50 transition-colors group flex flex-col"
+                            className="glass-card rounded-3xl p-5 hover:-translate-y-1 transition-all duration-300 group flex flex-col relative overflow-hidden h-[180px]"
                         >
-                            <div className="flex items-start gap-4 mb-3">
-                                <div className="text-4xl">
+                            <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            <div className="flex items-start gap-4 mb-4 relative z-10">
+                                <div className="text-4xl p-3 bg-white/[0.03] border border-white/5 rounded-2xl shadow-inner group-hover:scale-105 transition-transform">
                                     {getIcon(file.category)}
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                    <h4 className="font-medium text-text truncate" title={file.filename}>
+                                <div className="flex-1 min-w-0 pt-1">
+                                    <h4 className="font-bold text-white truncate text-base mb-1" title={file.filename}>
                                         {file.filename}
                                     </h4>
-                                    <div className="text-xs text-muted flex justify-between mt-1">
-                                        <span>{formatSize(file.size)}</span>
-                                        <span>{new Date(file.date_uploaded).toLocaleDateString()}</span>
+                                    <div className="text-xs font-semibold uppercase tracking-wider text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-md inline-block border border-indigo-500/20">
+                                        {formatSize(file.size)}
                                     </div>
                                 </div>
                             </div>
-                            <div className="mt-auto flex justify-between items-center pt-3 border-t border-border border-dashed">
-                                <span className="text-[10px] text-muted font-mono truncate mr-2" title={file.uploaded_by_ip}>
-                                    From: {file.uploaded_by_ip}
-                                </span>
+                            <div className="mt-auto flex justify-between items-end pt-3 relative z-10">
+                                <div>
+                                    <div className="text-[10px] text-slate-500 font-medium mb-0.5 uppercase tracking-wide">Shared By</div>
+                                    <span className="text-xs text-slate-300 font-mono" title={file.uploaded_by_ip}>
+                                        {file.uploaded_by_ip}
+                                    </span>
+                                </div>
+                                <div className="flex flex-col items-end">
+                                    <div className="text-[10px] text-slate-500 font-medium mb-0.5 uppercase tracking-wide">Date</div>
+                                    <span className="text-xs text-slate-400">
+                                        {new Date(file.date_uploaded).toLocaleDateString(undefined, {month:'short', day:'numeric'})}
+                                    </span>
+                                </div>
+                                
+                                {/* Delete button absolute in corner to not mess up alignment */}
                                 <button
                                     onClick={(e) => handleDelete(file.id, e)}
-                                    className="text-red-400 hover:text-red-300 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity p-3 sm:p-1 -mr-2 sm:mr-0"
+                                    className="absolute bottom-4 right-4 text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all p-2 bg-black/40 hover:bg-red-500/10 rounded-xl backdrop-blur-sm border border-transparent hover:border-red-500/20 z-20"
                                     title="Delete file"
                                 >
                                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
