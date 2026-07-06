@@ -40,6 +40,10 @@ html {
 body {
   font-family: 'Inter', system-ui, sans-serif;
   background-color: var(--c-bg);
+  background-image: 
+    radial-gradient(circle at 15% 50%, rgba(139, 92, 246, 0.07), transparent 40%),
+    radial-gradient(circle at 85% 30%, rgba(6, 182, 212, 0.07), transparent 40%);
+  background-attachment: fixed;
   color: var(--c-text);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
@@ -84,24 +88,26 @@ body {
 
 /* ── Glassmorphism ── */
 .glass {
-  background: rgba(13, 13, 31, 0.75);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid var(--c-border);
+  background: rgba(13, 13, 31, 0.65);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .glass-card {
-  background: linear-gradient(145deg, rgba(19, 19, 42, 0.7), rgba(13, 13, 31, 0.6));
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(139, 92, 246, 0.1);
-  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+  background: linear-gradient(145deg, rgba(19, 19, 42, 0.6), rgba(13, 13, 31, 0.4));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 8px 32px rgba(0, 0, 0, 0.2);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .glass-card:hover {
-  border-color: rgba(139, 92, 246, 0.4);
-  box-shadow: 0 0 40px rgba(139, 92, 246, 0.15), 0 10px 25px rgba(0,0,0,0.5);
-  transform: translateY(-3px);
+  border-color: rgba(139, 92, 246, 0.5);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 15px 40px rgba(139, 92, 246, 0.15), 0 10px 25px rgba(0,0,0,0.5);
+  transform: translateY(-4px) scale(1.01);
 }
 
 /* ── Gradient Text ── */
@@ -234,22 +240,22 @@ body {
   overflow: hidden;
   background: linear-gradient(135deg, #7c3aed, #8b5cf6);
   color: white;
-  border: none;
-  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.35);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 4px 15px rgba(139, 92, 246, 0.35);
 }
 
 .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 30px rgba(139, 92, 246, 0.6);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 12px 30px rgba(139, 92, 246, 0.6);
   background: linear-gradient(135deg, #8b5cf6, #a855f7);
 }
 
 .btn-primary:active {
-  transform: scale(0.97);
+  transform: scale(0.95);
 }
 
 .btn-secondary {
