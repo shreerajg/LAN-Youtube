@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import Navbar from '../components/Navbar'
 import VideoCard, { VideoListCard, VideoCardSkeleton } from '../components/VideoCard'
-import { getVideos, searchVideos, getInProgressVideos, getStats } from '../api'
+import { getVideos, searchVideos, getInProgressVideos, getStats, clearVideoHistory } from '../api'
 import PlaylistManager from '../components/PlaylistManager'
 
 const SORTS = [
@@ -155,7 +155,7 @@ function HeroSection({ videos, stats }) {
 }
 
 // ── Continue Watching Row ─────────────────────────────────────────────────────
-function ContinueWatchingRow({ videos, onAddToPlaylist, onFavoriteToggle }) {
+function ContinueWatchingRow({ videos, onAddToPlaylist, onFavoriteToggle, onRemoveHistory }) {
     if (!videos || videos.length === 0) return null
 
     return (
@@ -171,14 +171,14 @@ function ContinueWatchingRow({ videos, onAddToPlaylist, onFavoriteToggle }) {
                 <div className="section-line" />
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 stagger">
-                {videos.map(v => <VideoCard key={v.id} video={v} onAddToPlaylist={onAddToPlaylist} onFavoriteToggle={onFavoriteToggle} />)}
+                {videos.map(v => <VideoCard key={v.id} video={v} onAddToPlaylist={onAddToPlaylist} onFavoriteToggle={onFavoriteToggle} onRemoveHistory={onRemoveHistory} />)}
             </div>
         </section>
     )
 }
 
 // ── Category Section (vertical grid) ─────────────────────────────────────────
-function CategorySection({ category, videos, emoji, onAddToPlaylist, onFavoriteToggle }) {
+function CategorySection({ category, videos, emoji, onAddToPlaylist, onFavoriteToggle, onRemoveHistory }) {
     const [collapsed, setCollapsed] = useState(false)
 
     return (
@@ -202,7 +202,7 @@ function CategorySection({ category, videos, emoji, onAddToPlaylist, onFavoriteT
             </div>
             {!collapsed && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 stagger">
-                    {videos.map(v => <VideoCard key={v.id} video={v} onAddToPlaylist={onAddToPlaylist} onFavoriteToggle={onFavoriteToggle} />)}
+                    {videos.map(v => <VideoCard key={v.id} video={v} onAddToPlaylist={onAddToPlaylist} onFavoriteToggle={onFavoriteToggle} onRemoveHistory={onRemoveHistory} />)}
                 </div>
             )}
         </section>
@@ -267,6 +267,13 @@ export default function HomePage() {
         } catch { /* silent */ }
     }, [fetchAll])
 
+    const handleRemoveHistory = useCallback(async (video) => {
+        try {
+            await clearVideoHistory(video.id)
+            fetchAll()
+        } catch { /* silent */ }
+    }, [fetchAll])
+
     const displayed = activeCategory === 'All'
         ? videos
         : videos.filter(v => v.category === activeCategory)
@@ -326,6 +333,7 @@ export default function HomePage() {
                                 videos={inProgress}
                                 onAddToPlaylist={setPlaylistVideo}
                                 onFavoriteToggle={fetchAll}
+                                onRemoveHistory={handleRemoveHistory}
                             />
                         )}
 
@@ -434,20 +442,21 @@ export default function HomePage() {
                                 emoji={CATEGORY_EMOJIS[cat]}
                                 onAddToPlaylist={setPlaylistVideo}
                                 onFavoriteToggle={fetchAll}
+                                onRemoveHistory={handleRemoveHistory}
                             />
                         ))}
 
                         {/* Filtered / sorted grid */}
                         {!showByCat && displayed.length > 0 && viewMode === 'grid' && (
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 stagger animate-fade-in">
-                                {displayed.map(v => <VideoCard key={v.id} video={v} onAddToPlaylist={setPlaylistVideo} onFavoriteToggle={fetchAll} />)}
+                                {displayed.map(v => <VideoCard key={v.id} video={v} onAddToPlaylist={setPlaylistVideo} onFavoriteToggle={fetchAll} onRemoveHistory={handleRemoveHistory} />)}
                             </div>
                         )}
 
                         {/* List view */}
                         {displayed.length > 0 && viewMode === 'list' && (
                             <div className="flex flex-col gap-2 stagger">
-                                {displayed.map(v => <VideoListCard key={v.id} video={v} onFavoriteToggle={fetchAll} />)}
+                                {displayed.map(v => <VideoListCard key={v.id} video={v} onAddToPlaylist={setPlaylistVideo} onFavoriteToggle={fetchAll} onRemoveHistory={handleRemoveHistory} />)}
                             </div>
                         )}
 
