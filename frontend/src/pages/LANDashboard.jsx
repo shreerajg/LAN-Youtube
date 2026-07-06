@@ -217,61 +217,67 @@ export default function LANDashboard() {
                     </div>
                 </div>
 
-                {/* Right Column: Clipboard Sync */}
-                <div className="bg-surface rounded-2xl border border-border p-6 shadow-xl flex flex-col max-h-[80vh]">
-                    <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-xl font-bold text-text">Clipboard Sync</h2>
+                {/* Bento Item: Clipboard Sync (Takes full width on tablet, 2 on lg if we want, or spans remaining space) */}
+                <div className="glass-card rounded-3xl p-6 flex flex-col md:col-span-2 lg:col-span-3 min-h-[400px]">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-lg font-bold text-white font-['Space_Grotesk'] flex items-center gap-2">
+                            <svg className="w-5 h-5 text-fuchsia-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+                            Universal Clipboard
+                        </h2>
                         <button 
                             onClick={clearClipboard}
-                            className="text-xs text-red-400 hover:text-red-300"
+                            className="text-xs font-bold uppercase tracking-wider text-red-400/80 hover:text-red-400 transition-colors px-3 py-1.5 rounded-lg border border-transparent hover:border-red-400/20 hover:bg-red-400/10"
                         >
                             Clear All
                         </button>
                     </div>
 
-                    <form onSubmit={handleAddClip} className="mb-4 flex gap-2">
+                    <form onSubmit={handleAddClip} className="mb-6 flex gap-3">
                         <input
                             type="text"
                             value={clipInput}
                             onChange={e => setClipInput(e.target.value)}
-                            placeholder="Paste text here to share..."
-                            className="flex-1 bg-bg border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-text"
+                            placeholder="Paste any text, URL, or code here to share across devices..."
+                            className="flex-1 bg-white/[0.02] border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-fuchsia-500/50 focus:ring-1 focus:ring-fuchsia-500/50 text-white transition-all shadow-inner"
                         />
                         <button 
                             type="submit"
                             disabled={!clipInput.trim()}
-                            className="bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white px-3 rounded-lg text-sm font-medium transition-colors"
+                            className="bg-fuchsia-600 hover:bg-fuchsia-500 disabled:opacity-50 disabled:hover:bg-fuchsia-600 text-white px-6 rounded-xl text-sm font-semibold transition-colors shadow-[0_4px_15px_rgba(192,38,211,0.3)] hover:shadow-[0_6px_20px_rgba(192,38,211,0.5)]"
                         >
-                            Add
+                            Share
                         </button>
                     </form>
 
-                    <div className="flex-1 overflow-y-auto pr-2 space-y-3">
+                    <div className="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar grid grid-cols-1 md:grid-cols-2 gap-4">
                         {clipboard.length === 0 ? (
-                            <div className="text-center text-muted pt-10 text-sm">
-                                Clipboard is empty.<br/>Paste something to share with other devices.
+                            <div className="col-span-full flex flex-col items-center justify-center py-10 text-slate-500">
+                                <svg className="w-12 h-12 mb-3 text-white/5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                                <p className="text-sm">Clipboard is empty.</p>
                             </div>
                         ) : (
                             clipboard.map(item => (
-                                <div key={item.id} className="group relative p-3 rounded-xl bg-surface2 border border-border hover:border-violet-500/50 transition-colors">
-                                    <div className="flex justify-between items-start mb-1">
-                                        <span className="text-[10px] text-muted font-medium bg-bg px-2 py-0.5 rounded-full">
+                                <div key={item.id} className="group relative p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-fuchsia-500/30 hover:bg-white/[0.04] transition-all flex flex-col h-[140px]">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-[10px] text-fuchsia-300 font-bold uppercase tracking-wider bg-fuchsia-500/10 px-2 py-0.5 rounded-full border border-fuchsia-500/20">
                                             {item.device_name}
                                         </span>
-                                        <span className="text-[10px] text-muted">
+                                        <span className="text-[10px] text-slate-500 font-medium">
                                             {new Date(item.date_created).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                                         </span>
                                     </div>
-                                    <p className="text-sm text-text whitespace-pre-wrap break-words pr-8 mt-2 line-clamp-4">
+                                    <p className="text-sm text-slate-300 whitespace-pre-wrap break-words mt-1 line-clamp-3 font-mono">
                                         {item.content}
                                     </p>
                                     
                                     {/* Actions hover overlay */}
-                                    <div className="absolute top-1/2 right-2 -translate-y-1/2 flex flex-col sm:flex-row gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity bg-surface2/80 sm:bg-transparent p-1 sm:p-0 rounded-lg">
+                                    <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-[#0d0d1f]/80 backdrop-blur-md p-1 rounded-lg border border-white/10 shadow-xl">
                                         <button 
                                             onClick={() => handleCopy(item.content)}
-                                            className="p-2 sm:p-1.5 bg-surface rounded-md border border-border hover:bg-violet-500/20 hover:text-violet-400 text-muted transition-colors shadow-lg sm:shadow-none"
-                                            title="Copy to local clipboard"
+                                            className="p-1.5 rounded-md hover:bg-fuchsia-500/20 hover:text-fuchsia-300 text-slate-400 transition-colors"
+                                            title="Copy"
                                         >
                                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -279,7 +285,7 @@ export default function LANDashboard() {
                                         </button>
                                         <button 
                                             onClick={() => handleDeleteClip(item.id)}
-                                            className="p-2 sm:p-1.5 bg-surface rounded-md border border-border hover:bg-red-500/20 hover:text-red-400 text-muted transition-colors shadow-lg sm:shadow-none"
+                                            className="p-1.5 rounded-md hover:bg-red-500/20 hover:text-red-400 text-slate-400 transition-colors"
                                             title="Delete"
                                         >
                                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
