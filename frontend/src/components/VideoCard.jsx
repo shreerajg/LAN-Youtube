@@ -49,7 +49,7 @@ function isNew(video) {
 }
 
 // ── Grid Card (default) ───────────────────────────────────────────────────────
-export default function VideoCard({ video, style, onAddToPlaylist, onFavoriteToggle }) {
+export default function VideoCard({ video, style, onAddToPlaylist, onFavoriteToggle, onRemoveHistory }) {
     const navigate = useNavigate()
     const name = video.filename.replace(/\.[^/.]+$/, '')
     const progress = progressPercent(video)
@@ -120,6 +120,19 @@ export default function VideoCard({ video, style, onAddToPlaylist, onFavoriteTog
                     backdrop-blur-sm border border-white/10">
                     {formatDuration(video.duration)}
                 </span>
+
+                {/* Clear History Button */}
+                {hasProgress && onRemoveHistory && (
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onRemoveHistory(video); }}
+                        className="absolute top-2 right-14 bg-black/70 hover:bg-red-500/80 text-slate-300 hover:text-white w-7 h-7 rounded-md flex items-center justify-center backdrop-blur-sm border border-white/10 opacity-0 group-hover:opacity-100 transition-all z-20"
+                        title="Clear watch progress"
+                    >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                )}
 
                 {/* File extension badge */}
                 <span className="absolute top-2 left-2 bg-violet-600/70 text-white text-[10px] font-bold px-2 py-0.5 rounded-md
@@ -199,7 +212,7 @@ export default function VideoCard({ video, style, onAddToPlaylist, onFavoriteTog
 }
 
 // ── List Card ────────────────────────────────────────────────────────────────
-export function VideoListCard({ video, style, onFavoriteToggle }) {
+export function VideoListCard({ video, style, onFavoriteToggle, onRemoveHistory, onAddToPlaylist }) {
     const navigate = useNavigate()
     const name = video.filename.replace(/\.[^/.]+$/, '')
     const progress = progressPercent(video)
@@ -271,8 +284,30 @@ export function VideoListCard({ video, style, onFavoriteToggle }) {
                 </p>
             </div>
 
-            {/* Fav + arrow */}
+            {/* Actions */}
             <div className="shrink-0 flex items-center gap-2">
+                {hasProgress && onRemoveHistory && (
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onRemoveHistory(video); }}
+                        className="w-8 h-8 rounded-lg flex items-center justify-center transition-all text-slate-600 hover:text-red-400 opacity-100 sm:opacity-0 group-hover:opacity-100 hover:bg-red-500/10"
+                        title="Clear watch progress"
+                    >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                )}
+                {onAddToPlaylist && (
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onAddToPlaylist(video); }}
+                        className="w-8 h-8 rounded-lg flex items-center justify-center transition-all text-slate-600 hover:text-violet-400 opacity-100 sm:opacity-0 group-hover:opacity-100 hover:bg-violet-500/10"
+                        title="Add to playlist"
+                    >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                    </button>
+                )}
                 <button
                     onClick={handleFavClick}
                     className={`w-10 h-10 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center transition-all
