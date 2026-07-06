@@ -41,9 +41,8 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
 
     return (
         <>
-            <header className={`sticky top-0 z-50 transition-all duration-400
-                ${scrolled ? 'glass border-b border-violet-500/10 shadow-2xl shadow-black/40' : 'bg-transparent'}`}>
-                <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-4">
+            <header className="sticky top-0 z-50 pt-2 sm:pt-4 pb-2 transition-all duration-500">
+                <div className={`mx-auto transition-all duration-500 flex items-center gap-4 ${scrolled ? 'max-w-6xl rounded-2xl glass border border-white/10 shadow-2xl shadow-violet-900/30 px-4 py-2' : 'max-w-screen-2xl px-4 sm:px-6 py-2 bg-transparent'}`}>
                     {/* Logo */}
                     <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
                         <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 via-violet-500 to-cyan-500
