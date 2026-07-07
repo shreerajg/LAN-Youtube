@@ -1,8 +1,14 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
+import { motion } from 'framer-motion'
 import Navbar from '../components/Navbar'
 import VideoCard, { VideoListCard, VideoCardSkeleton } from '../components/VideoCard'
 import { getVideos, searchVideos, getInProgressVideos, getStats, clearVideoHistory } from '../api'
 import PlaylistManager from '../components/PlaylistManager'
+
+export const staggerContainer = {
+    hidden: { opacity: 0 },
+    show: { opacity: 1, transition: { staggerChildren: 0.05 } }
+}
 
 const SORTS = [
     { key: 'date_added', label: 'Recently Added' },
@@ -179,9 +185,9 @@ function ContinueWatchingRow({ videos, onAddToPlaylist, onFavoriteToggle, onRemo
                 </div>
                 <div className="section-line" />
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 stagger">
+            <motion.div variants={staggerContainer} initial="hidden" animate="show" className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 stagger">
                 {videos.map(v => <VideoCard key={v.id} video={v} onAddToPlaylist={onAddToPlaylist} onFavoriteToggle={onFavoriteToggle} onRemoveHistory={onRemoveHistory} />)}
-            </div>
+            </motion.div>
         </section>
     )
 }
@@ -210,9 +216,9 @@ function CategorySection({ category, videos, emoji, onAddToPlaylist, onFavoriteT
                 </button>
             </div>
             {!collapsed && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 stagger">
+                <motion.div variants={staggerContainer} initial="hidden" animate="show" className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 stagger">
                     {videos.map(v => <VideoCard key={v.id} video={v} onAddToPlaylist={onAddToPlaylist} onFavoriteToggle={onFavoriteToggle} onRemoveHistory={onRemoveHistory} />)}
-                </div>
+                </motion.div>
             )}
         </section>
     )
@@ -457,16 +463,16 @@ export default function HomePage() {
 
                         {/* Filtered / sorted grid */}
                         {!showByCat && displayed.length > 0 && viewMode === 'grid' && (
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 stagger animate-fade-in">
+                            <motion.div variants={staggerContainer} initial="hidden" animate="show" className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 stagger">
                                 {displayed.map(v => <VideoCard key={v.id} video={v} onAddToPlaylist={setPlaylistVideo} onFavoriteToggle={fetchAll} onRemoveHistory={handleRemoveHistory} />)}
-                            </div>
+                            </motion.div>
                         )}
 
                         {/* List view */}
                         {displayed.length > 0 && viewMode === 'list' && (
-                            <div className="flex flex-col gap-2 stagger">
+                            <motion.div variants={staggerContainer} initial="hidden" animate="show" className="flex flex-col gap-2 stagger">
                                 {displayed.map(v => <VideoListCard key={v.id} video={v} onAddToPlaylist={setPlaylistVideo} onFavoriteToggle={fetchAll} onRemoveHistory={handleRemoveHistory} />)}
-                            </div>
+                            </motion.div>
                         )}
 
                         {/* Creator Signature */}
