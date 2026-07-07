@@ -1,5 +1,6 @@
 import React from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
+import { AnimatePresence, motion } from 'framer-motion'
 import HomePage from './pages/HomePage'
 import PlayerPage from './pages/PlayerPage'
 import HistoryPage from './pages/HistoryPage'
@@ -10,9 +11,15 @@ import { ToastProvider } from './components/Toast'
 
 function PageWrapper({ children }) {
     return (
-        <div className="page-wrapper mobile-bottom-nav-padding">
+        <motion.div 
+            className="page-wrapper mobile-bottom-nav-padding"
+            initial={{ opacity: 0, y: 15, filter: 'blur(4px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, y: -10, filter: 'blur(0px)' }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+        >
             {children}
-        </div>
+        </motion.div>
     )
 }
 
@@ -39,15 +46,17 @@ export default function App() {
     
     return (
         <ToastProvider>
-            <Routes location={location}>
-                <Route path="/" element={<PageWrapper><HomePage /></PageWrapper>} />
-                <Route path="/player/:id" element={<PageWrapper><PlayerPage /></PageWrapper>} />
-                <Route path="/history" element={<PageWrapper><HistoryPage /></PageWrapper>} />
-                <Route path="/files" element={<PageWrapper><FilesPage /></PageWrapper>} />
-                <Route path="/chat" element={<PageWrapper><ChatPage /></PageWrapper>} />
-                <Route path="/lan" element={<PageWrapper><LANDashboard /></PageWrapper>} />
-                <Route path="*" element={<PageWrapper><HomePage /></PageWrapper>} />
-            </Routes>
+            <AnimatePresence mode="wait">
+                <Routes location={location} key={location.pathname}>
+                    <Route path="/" element={<PageWrapper><HomePage /></PageWrapper>} />
+                    <Route path="/player/:id" element={<PageWrapper><PlayerPage /></PageWrapper>} />
+                    <Route path="/history" element={<PageWrapper><HistoryPage /></PageWrapper>} />
+                    <Route path="/files" element={<PageWrapper><FilesPage /></PageWrapper>} />
+                    <Route path="/chat" element={<PageWrapper><ChatPage /></PageWrapper>} />
+                    <Route path="/lan" element={<PageWrapper><LANDashboard /></PageWrapper>} />
+                    <Route path="*" element={<PageWrapper><HomePage /></PageWrapper>} />
+                </Routes>
+            </AnimatePresence>
             <SystemStatusFooter />
         </ToastProvider>
     )
