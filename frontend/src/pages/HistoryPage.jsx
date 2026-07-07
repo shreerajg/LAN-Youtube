@@ -1,7 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react'
+import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import { getHistory, clearVideoHistory, clearAllHistory } from '../api'
+
+const staggerContainer = {
+    hidden: { opacity: 0 },
+    show: { opacity: 1, transition: { staggerChildren: 0.1 } }
+}
+
+const itemVariants = {
+    hidden: { opacity: 0, y: 20, scale: 0.95 },
+    show: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 300, damping: 24 } }
+}
 
 function formatDuration(secs) {
     if (!secs) return '0:00'
@@ -164,9 +175,9 @@ export default function HistoryPage() {
 
                 {/* Grouped history list */}
                 {!loading && history.length > 0 && (
-                    <div className="space-y-8 animate-fade-in">
+                    <motion.div variants={staggerContainer} initial="hidden" animate="show" className="space-y-8">
                         {Object.entries(grouped).map(([date, videos]) => (
-                            <div key={date}>
+                            <motion.div key={date} variants={itemVariants}>
                                 {/* Date divider */}
                                 <div className="flex items-center gap-3 mb-3">
                                     <span className="text-xs font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">{date}</span>
