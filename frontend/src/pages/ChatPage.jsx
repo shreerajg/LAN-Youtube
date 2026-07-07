@@ -1,7 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { getWsUrl } from '../api'
 
 export default function ChatPage() {
+    const messageVariants = {
+        hidden: { opacity: 0, y: 20, scale: 0.95 },
+        visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 400, damping: 25 } }
+    }
+
     const [messages, setMessages] = useState([])
     const [roster, setRoster] = useState([])
     const [input, setInput] = useState('')
@@ -118,42 +124,58 @@ export default function ChatPage() {
                             No messages yet. Say hi!
                         </div>
                     )}
-                    {messages.map((msg, idx) => {
-                        if (msg.type === 'system' || msg.type === 'clipboard') {
-                            return (
-                                <div key={idx} className="flex justify-center my-2">
-                                    <span className="text-xs text-muted bg-surface2 px-3 py-1 rounded-full border border-border">
-                                        {msg.text}
-                                    </span>
-                                </div>
-                            )
-                        }
+                    <AnimatePresence initial={false}>
+                        {messages.map((msg, idx) => {
+                            if (msg.type === 'system' || msg.type === 'clipboard') {
+                                return (
+                                    <motion.div 
+                                        key={`${msg.timestamp}-${idx}`} 
+                                        variants={messageVariants}
+                                        initial="hidden"
+                                        animate="visible"
+                                        layout
+                                        className="flex justify-center my-2"
+                                    >
+                                        <span className="text-xs text-muted bg-surface2 px-3 py-1 rounded-full border border-border">
+                                            {msg.text}
+                                        </span>
+                                    </motion.div>
+                                )
+                            }
 
-                        // Regular message
-                        const isMe = msg.name === myName // simple check, ideally by client_id
-                        return (
-                            <div key={idx} className={`flex flex-col max-w-[80%] ${isMe ? 'self-end items-end' : 'self-start items-start'}`}>
-                                {!isMe && (
-                                    <span className="text-xs font-semibold mb-1 ml-1" style={{ color: msg.color }}>
-                                        {msg.name}
-                                    </span>
-                                )}
-                                <div 
-                                    className={`px-4 py-2 rounded-2xl ${
-                                        isMe 
-                                        ? 'bg-violet-600 text-white rounded-br-sm' 
-                                        : 'bg-surface2 text-text border border-border rounded-bl-sm'
-                                    }`}
-                                    style={!isMe ? { borderLeftColor: msg.color, borderLeftWidth: '3px' } : {}}
+                            // Regular message
+                            const isMe = msg.name === myName // simple check, ideally by client_id
+                            return (
+                                <motion.div 
+                                    key={`${msg.timestamp}-${idx}`} 
+                                    variants={messageVariants}
+                                    initial="hidden"
+                                    animate="visible"
+                                    layout
+                                    className={`flex flex-col max-w-[80%] ${isMe ? 'self-end items-end' : 'self-start items-start'}`}
                                 >
-                                    <p className="whitespace-pre-wrap break-words text-sm">{msg.text}</p>
-                                </div>
-                                <span className="text-[10px] text-muted mt-1 mx-1">
-                                    {new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                                </span>
-                            </div>
-                        )
-                    })}
+                                    {!isMe && (
+                                        <span className="text-xs font-semibold mb-1 ml-1" style={{ color: msg.color }}>
+                                            {msg.name}
+                                        </span>
+                                    )}
+                                    <div 
+                                        className={`px-4 py-2 rounded-2xl ${
+                                            isMe 
+                                            ? 'bg-violet-600 text-white rounded-br-sm' 
+                                            : 'bg-surface2 text-text border border-border rounded-bl-sm'
+                                        }`}
+                                        style={!isMe ? { borderLeftColor: msg.color, borderLeftWidth: '3px' } : {}}
+                                    >
+                                        <p className="whitespace-pre-wrap break-words text-sm">{msg.text}</p>
+                                    </div>
+                                    <span className="text-[10px] text-muted mt-1 mx-1">
+                                        {new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                    </span>
+                                </motion.div>
+                            )
+                        })}
+                    </AnimatePresence>
                     <div ref={messagesEndRef} />
                 </div>
 
