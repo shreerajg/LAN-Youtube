@@ -264,9 +264,9 @@ export default function HistoryPage() {
                                         )
                                     })}
                                 </div>
-                            </div>
+                            </motion.div>
                         ))}
-                    </div>
+                    </motion.div>
                 )}
             </main>
         </div>
