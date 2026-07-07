@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { motion } from 'framer-motion'
+const MotionLink = motion(Link)
 import { getStats } from '../api'
 import FolderManager from './FolderManager'
 import PlaylistManager from './PlaylistManager'
@@ -44,7 +46,7 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
             <header className="sticky top-0 z-50 pt-2 sm:pt-4 pb-2 transition-all duration-500">
                 <div className={`mx-auto transition-all duration-500 flex items-center gap-4 ${scrolled ? 'max-w-6xl rounded-2xl glass border border-white/10 shadow-2xl shadow-violet-900/30 px-4 py-2' : 'max-w-screen-2xl px-4 sm:px-6 py-2 bg-transparent'}`}>
                     {/* Logo */}
-                    <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
+                    <MotionLink whileTap={{ scale: 0.95 }} to="/" className="flex items-center gap-2.5 shrink-0 group">
                         <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 via-violet-500 to-cyan-500
                             flex items-center justify-center shadow-lg shadow-violet-600/40
                             group-hover:shadow-violet-500/60 transition-all group-hover:scale-105 group-hover:rotate-3">
@@ -62,7 +64,7 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
                             </span>
                             <span className="text-[10px] text-slate-500 font-semibold tracking-[0.2em] uppercase mt-0.5">LAN · MEDIA</span>
                         </div>
-                    </Link>
+                    </MotionLink>
 
                     {/* Search */}
                     {isHome && (
@@ -130,7 +132,8 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
                         )}
 
                         {/* Files */}
-                        <Link
+                        <MotionLink
+                            whileTap={{ scale: 0.95 }}
                             to="/files"
                             className={`flex items-center justify-center gap-2 px-3 py-2.5 sm:px-4 text-sm font-semibold rounded-xl transition-all duration-300 min-w-[70px] sm:min-w-0 border ${
                                 location.pathname === '/files'
@@ -140,10 +143,11 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
                             title="LAN File Share"
                         >
                             <span className="sm:inline">Files</span>
-                        </Link>
+                        </MotionLink>
 
                         {/* Chat */}
-                        <Link
+                        <MotionLink
+                            whileTap={{ scale: 0.95 }}
                             to="/chat"
                             className={`flex items-center justify-center gap-2 px-3 py-2.5 sm:px-4 text-sm font-semibold rounded-xl transition-all duration-300 min-w-[70px] sm:min-w-0 border ${
                                 location.pathname === '/chat'
@@ -153,10 +157,11 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
                             title="LAN Chat"
                         >
                             <span className="sm:inline">Chat</span>
-                        </Link>
+                        </MotionLink>
 
                         {/* LAN */}
-                        <Link
+                        <MotionLink
+                            whileTap={{ scale: 0.95 }}
                             to="/lan"
                             className={`flex items-center justify-center gap-2 px-3 py-2.5 sm:px-4 text-sm font-semibold rounded-xl transition-all duration-300 min-w-[70px] sm:min-w-0 border ${
                                 location.pathname === '/lan'
@@ -166,10 +171,10 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
                             title="LAN Dashboard"
                         >
                             <span className="sm:inline">LAN</span>
-                        </Link>
+                        </MotionLink>
 
-                        {/* History */}
-                        <Link
+                        <MotionLink
+                            whileTap={{ scale: 0.95 }}
                             id="history-nav-btn"
                             to="/history"
                             className={`flex items-center justify-center gap-2 px-3 py-2.5 sm:px-4 text-sm font-semibold rounded-xl transition-all duration-300 min-w-[70px] sm:min-w-0 border ${
@@ -184,10 +189,10 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
                                     d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                             <span className="hidden sm:inline">History</span>
-                        </Link>
+                        </MotionLink>
 
-                        {/* Add Folder */}
-                        <button
+                        <motion.button
+                            whileTap={{ scale: 0.95 }}
                             id="add-folder-nav-btn"
                             onClick={() => setShowFolderMgr(true)}
                             className="btn-primary flex items-center justify-center gap-2 px-3 py-2.5 sm:px-4 text-sm font-semibold rounded-xl shrink-0"
@@ -197,10 +202,10 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
                                     d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
                             </svg>
                             <span className="hidden sm:inline">Add</span>
-                        </button>
+                        </motion.button>
 
-                        {/* Playlists */}
-                        <button
+                        <motion.button
+                            whileTap={{ scale: 0.95 }}
                             onClick={() => setShowPlaylistMgr(true)}
                             className="flex items-center justify-center gap-2 px-3 py-2.5 sm:px-4 text-sm font-semibold rounded-xl
                                 bg-cyan-600/15 text-cyan-400 border border-cyan-500/15 hover:bg-cyan-600/25 
@@ -211,7 +216,7 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
                                     d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
                             </svg>
                             <span className="hidden sm:inline">Playlists</span>
-                        </button>
+                        </motion.button>
                     </div>
                 </div>
             </header>
