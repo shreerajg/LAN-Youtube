@@ -1,5 +1,16 @@
 import React, { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
 import { getLanInfo, getLanDevices, getClipboard, addClipboard, deleteClipboardItem, clearClipboard } from '../api'
+
+const staggerContainer = {
+    hidden: { opacity: 0 },
+    show: { opacity: 1, transition: { staggerChildren: 0.1 } }
+}
+
+const itemVariants = {
+    hidden: { opacity: 0, y: 20, scale: 0.95 },
+    show: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 300, damping: 24 } }
+}
 import { useToast } from '../components/Toast'
 
 export default function LANDashboard() {
@@ -91,10 +102,10 @@ export default function LANDashboard() {
             </h1>
             <p className="text-slate-400 text-sm mb-8 font-medium">Manage devices and synchronize clipboard across your network.</p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-min">
+            <motion.div variants={staggerContainer} initial="hidden" animate="show" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-min">
                 
                 {/* Bento Item: Connect Device (Takes 1 column) */}
-                <div className="glass-card rounded-3xl p-6 relative overflow-hidden group col-span-1 md:col-span-1 lg:col-span-1 flex flex-col items-center justify-center min-h-[300px]">
+                <motion.div variants={itemVariants} className="glass-card rounded-3xl p-6 relative overflow-hidden group col-span-1 md:col-span-1 lg:col-span-1 flex flex-col items-center justify-center min-h-[300px]">
                     <div className="absolute top-0 right-0 w-48 h-48 bg-cyan-500/20 blur-[60px] rounded-full -mr-10 -mt-10 group-hover:bg-cyan-500/30 transition-all duration-700"></div>
                     <div className="absolute bottom-0 left-0 w-32 h-32 bg-violet-500/10 blur-[50px] rounded-full transition-all duration-700 group-hover:bg-violet-500/20"></div>
                     
@@ -127,7 +138,7 @@ export default function LANDashboard() {
                 </div>
 
                 {/* Bento Item: Server Stats (Takes 1 column) */}
-                <div className="glass-card rounded-3xl p-6 relative overflow-hidden group col-span-1 md:col-span-1 lg:col-span-1 flex flex-col justify-between">
+                <motion.div variants={itemVariants} className="glass-card rounded-3xl p-6 relative overflow-hidden group col-span-1 md:col-span-1 lg:col-span-1 flex flex-col justify-between">
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-violet-600/5 blur-[80px] rounded-full group-hover:bg-violet-600/10 transition-colors duration-700"></div>
                     
                     <h2 className="text-lg font-bold text-white mb-6 relative z-10 font-['Space_Grotesk'] flex items-center gap-2">
@@ -158,7 +169,7 @@ export default function LANDashboard() {
                 </div>
 
                 {/* Bento Item: LAN Devices (Takes 1 or 2 columns based on screen) */}
-                <div className="glass-card rounded-3xl p-6 shadow-xl flex flex-col md:col-span-2 lg:col-span-1 max-h-[450px]">
+                <motion.div variants={itemVariants} className="glass-card rounded-3xl p-6 shadow-xl flex flex-col md:col-span-2 lg:col-span-1 max-h-[450px]">
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-lg font-bold text-white font-['Space_Grotesk'] flex items-center gap-2">
                             <svg className="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -218,7 +229,7 @@ export default function LANDashboard() {
                 </div>
 
                 {/* Bento Item: Clipboard Sync (Takes full width on tablet, 2 on lg if we want, or spans remaining space) */}
-                <div className="glass-card rounded-3xl p-6 flex flex-col md:col-span-2 lg:col-span-3 min-h-[400px]">
+                <motion.div variants={itemVariants} className="glass-card rounded-3xl p-6 flex flex-col md:col-span-2 lg:col-span-3 min-h-[400px]">
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-lg font-bold text-white font-['Space_Grotesk'] flex items-center gap-2">
                             <svg className="w-5 h-5 text-fuchsia-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -297,9 +308,9 @@ export default function LANDashboard() {
                             ))
                         )}
                     </div>
-                </div>
+                </motion.div>
 
-            </div>
+            </motion.div>
         </div>
     )
 }
