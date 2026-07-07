@@ -1,6 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { motion } from 'framer-motion'
 import { getSharedFiles, deleteSharedFile } from '../api'
 import { useToast } from '../components/Toast'
+
+const staggerContainer = {
+    hidden: { opacity: 0 },
+    show: { opacity: 1, transition: { staggerChildren: 0.1 } }
+}
+
+const itemVariants = {
+    hidden: { opacity: 0, y: 20, scale: 0.95 },
+    show: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 300, damping: 24 } }
+}
 
 export default function FilesPage() {
     const [files, setFiles] = useState([])
@@ -150,7 +161,10 @@ export default function FilesPage() {
             </div>
 
             {/* Dropzone */}
-            <div 
+            <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 24 }}
                 className="mb-10 glass-card border-2 border-dashed border-indigo-500/20 rounded-3xl py-14 px-6 sm:p-12 flex flex-col items-center justify-center text-center hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all duration-300 cursor-pointer relative overflow-hidden group shadow-[0_0_30px_rgba(0,0,0,0.2)]"
                 onDrop={onDrop}
                 onDragOver={onDragOver}
@@ -187,7 +201,7 @@ export default function FilesPage() {
                         <p className="text-sm text-slate-400 font-medium">Supports any file type. No size limit.</p>
                     </div>
                 )}
-            </div>
+            </motion.div>
 
             {/* Files Grid */}
             {loading ? (
@@ -200,9 +214,10 @@ export default function FilesPage() {
                     <p className="font-medium">No files found in this category.</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <motion.div variants={staggerContainer} initial="hidden" animate="show" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {files.map(file => (
-                        <a
+                        <motion.a
+                            variants={itemVariants}
                             key={file.id}
                             href={file.download_url}
                             download={file.filename}
@@ -247,9 +262,9 @@ export default function FilesPage() {
                                     </svg>
                                 </button>
                             </div>
-                        </a>
+                        </motion.a>
                     ))}
-                </div>
+                </motion.div>
             )}
         </div>
     )
