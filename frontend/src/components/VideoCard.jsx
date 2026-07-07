@@ -1,6 +1,12 @@
 import React, { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { toggleFavorite } from '../api'
+
+export const videoCardVariants = {
+    hidden: { opacity: 0, y: 20, scale: 0.95 },
+    show: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 300, damping: 24 } }
+}
 
 function formatDuration(secs) {
     if (!secs) return '0:00'
@@ -77,9 +83,13 @@ export default function VideoCard({ video, style, onAddToPlaylist, onFavoriteTog
     }
 
     return (
-        <article
+        <motion.article
+            variants={videoCardVariants}
+            initial="hidden"
+            animate="show"
+            whileHover={{ y: -4 }}
             id={`video-card-${video.id}`}
-            className="video-card animate-fade-in"
+            className="video-card group"
             style={style}
             onClick={() => navigate(`/player/${video.id}`)}
             role="button"
@@ -207,7 +217,7 @@ export default function VideoCard({ video, style, onAddToPlaylist, onFavoriteTog
                     {isFav && <span className="ml-auto text-red-400 text-xs">♥</span>}
                 </div>
             </div>
-        </article>
+        </motion.article>
     )
 }
 
@@ -234,7 +244,10 @@ export function VideoListCard({ video, style, onFavoriteToggle, onRemoveHistory,
     }, [video.id, onFavoriteToggle])
 
     return (
-        <article
+        <motion.article
+            variants={videoCardVariants}
+            initial="hidden"
+            animate="show"
             id={`video-list-${video.id}`}
             className="list-card group"
             style={style}
@@ -328,7 +341,7 @@ export function VideoListCard({ video, style, onFavoriteToggle, onRemoveHistory,
                     </svg>
                 </div>
             </div>
-        </article>
+        </motion.article>
     )
 }
 
