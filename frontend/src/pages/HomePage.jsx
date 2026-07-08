@@ -65,6 +65,7 @@ function StatCounter({ value, label, color, icon }) {
         return () => clearInterval(timer)
     }, [value])
 
+    return (
         <div className="glass-card rounded-2xl px-6 py-4 flex items-center gap-4 animate-slide-up hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 cursor-default group flex-1 min-w-[140px]">
             <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-inner ${color.replace('text-', 'bg-').replace('400', '500/15')} border border-white/5 group-hover:scale-110 transition-transform duration-300`}>
                 <span className={color}>{icon}</span>
