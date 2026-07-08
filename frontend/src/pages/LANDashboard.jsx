@@ -98,7 +98,7 @@ export default function LANDashboard() {
     return (
         <div className="pt-24 pb-8 px-4 sm:px-8 max-w-7xl mx-auto min-h-screen">
             <h1 className="text-4xl font-black font-['Space_Grotesk'] text-white tracking-tight mb-2">
-                LAN Dashboard
+                LAN Social Hub
             </h1>
             <p className="text-slate-400 text-sm mb-8 font-medium">Manage devices and synchronize clipboard across your network.</p>
 
