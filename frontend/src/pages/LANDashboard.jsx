@@ -135,7 +135,7 @@ export default function LANDashboard() {
                             {info?.url || 'Loading...'}
                         </a>
                     </div>
-                </div>
+                </motion.div>
 
                 {/* Bento Item: Server Stats (Takes 1 column) */}
                 <motion.div variants={itemVariants} className="glass-card rounded-3xl p-6 relative overflow-hidden group col-span-1 md:col-span-1 lg:col-span-1 flex flex-col justify-between">
@@ -166,7 +166,7 @@ export default function LANDashboard() {
                             <span className="font-mono text-white text-sm bg-blue-500/10 px-2 py-0.5 rounded-md text-blue-400">{info?.shared_files ?? '...'}</span>
                         </div>
                     </div>
-                </div>
+                </motion.div>
 
                 {/* Bento Item: LAN Devices (Takes 1 or 2 columns based on screen) */}
                 <motion.div variants={itemVariants} className="glass-card rounded-3xl p-6 shadow-xl flex flex-col md:col-span-2 lg:col-span-1 max-h-[450px]">
@@ -226,7 +226,7 @@ export default function LANDashboard() {
                             ))
                         )}
                     </div>
-                </div>
+                </motion.div>
 
                 {/* Bento Item: Clipboard Sync (Takes full width on tablet, 2 on lg if we want, or spans remaining space) */}
                 <motion.div variants={itemVariants} className="glass-card rounded-3xl p-6 flex flex-col md:col-span-2 lg:col-span-3 min-h-[400px]">
