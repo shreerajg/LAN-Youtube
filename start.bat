@@ -41,10 +41,8 @@ pip install pystray Pillow --quiet
 :: Build frontend if not built
 echo  [2/3] Building frontend...
 cd /d "%~dp0frontend"
-if not exist node_modules (
-    echo        Installing npm packages...
+    echo        Checking npm packages...
     call npm install --silent
-)
 call npm run build
 
 :: Start server in system tray
