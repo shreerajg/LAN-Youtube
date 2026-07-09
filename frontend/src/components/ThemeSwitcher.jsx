@@ -69,7 +69,7 @@ export default function ThemeSwitcher() {
                                 >
                                     <div 
                                         className="w-3 h-3 rounded-full shadow-sm" 
-                                        style={{ backgroundColor: t.color, border: \`1px solid \${t.border}\` }}
+                                        style={{ backgroundColor: t.color, border: `1px solid ${t.border}` }}
                                     />
                                     {t.label}
                                 </button>
