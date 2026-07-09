@@ -15,8 +15,12 @@ console.log(
     "color: #a78bfa; font-family: monospace;"
 );
 
+import { ThemeProvider } from './context/ThemeContext'
+
 ReactDOM.createRoot(document.getElementById('root')).render(
-    <BrowserRouter>
-        <App />
-    </BrowserRouter>
+    <ThemeProvider>
+        <BrowserRouter>
+            <App />
+        </BrowserRouter>
+    </ThemeProvider>
 )
