@@ -195,14 +195,14 @@ body {
 
 /* ── Gradient Text ── */
 .gradient-text {
-  background: linear-gradient(135deg, #a78bfa, #8b5cf6, #6d28d9);
+  background: linear-gradient(135deg, var(--c-neon2), var(--c-neon), var(--c-neon));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .gradient-text-cyan {
-  background: linear-gradient(135deg, #67e8f9, #06b6d4, #0891b2);
+  background: linear-gradient(135deg, var(--c-neon2), var(--c-neon2), var(--c-neon));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -293,10 +293,10 @@ body {
   bottom: 0;
   left: 0;
   height: 3px;
-  background: linear-gradient(90deg, #8b5cf6, #06b6d4);
+  background: linear-gradient(90deg, var(--c-neon), var(--c-neon2));
   border-radius: 0 2px 2px 0;
   transition: width 0.3s ease;
-  box-shadow: 0 0 8px rgba(139, 92, 246, 0.6);
+  box-shadow: 0 0 8px rgba(var(--c-neon-rgb), 0.6);
 }
 
 /* ── Skeleton ── */
@@ -321,20 +321,20 @@ body {
 .btn-primary {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+  background: linear-gradient(135deg, var(--c-neon), var(--c-neon));
   color: white;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(var(--c-white-rgb), 0.1);
   border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 4px 15px rgba(139, 92, 246, 0.35);
+  box-shadow: inset 0 1px 0 rgba(var(--c-white-rgb), 0.2), 0 4px 15px rgba(var(--c-neon-rgb), 0.35);
 }
 
 .btn-primary:hover {
   transform: translateY(-2px) scale(1.02);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 12px 30px rgba(139, 92, 246, 0.6);
-  background: linear-gradient(135deg, #8b5cf6, #a855f7);
+  box-shadow: inset 0 1px 0 rgba(var(--c-white-rgb), 0.3), 0 12px 30px rgba(var(--c-neon-rgb), 0.6);
+  background: linear-gradient(135deg, var(--c-neon), var(--c-neon2));
 }
 
 .btn-primary:active {
