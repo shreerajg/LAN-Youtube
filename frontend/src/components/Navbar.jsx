@@ -94,11 +94,7 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
                         </div>
                     )}
 
-                    <div className="hidden sm:block ml-auto mr-2">
-                        <ThemeSwitcher />
-                    </div>
-
-                    <div className="fixed bottom-0 left-0 right-0 bg-[#0d0d1f]/95 backdrop-blur-md border-t border-violet-500/20 p-2 sm:p-0 flex items-center gap-2 overflow-x-auto sm:static sm:bg-transparent sm:backdrop-blur-none sm:border-none sm:justify-start sm:overflow-visible sm:ml-0 shrink-0 z-50 pb-safe pb-4 sm:pb-0 hide-scrollbar px-2 sm:px-0">
+                    <div className="fixed bottom-0 left-0 right-0 bg-[#0d0d1f]/95 backdrop-blur-md border-t border-violet-500/20 p-2 sm:p-0 flex items-center gap-2 overflow-x-auto sm:static sm:bg-transparent sm:backdrop-blur-none sm:border-none sm:justify-start sm:overflow-visible sm:ml-auto shrink-0 z-50 pb-safe pb-4 sm:pb-0 hide-scrollbar px-2 sm:px-0">
                         {/* Stats chips */}
                         {stats && (
                             <div className="hidden lg:flex items-center gap-1.5">
@@ -135,6 +131,9 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
                                 )}
                             </div>
                         )}
+                        
+                        {/* Theme Switcher always visible first in the row */}
+                        <ThemeSwitcher />
 
                         {/* Files */}
                         <MotionLink
@@ -225,10 +224,6 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
                             </svg>
                             <span className="hidden sm:inline">Playlists</span>
                         </motion.button>
-                        
-                        <div className="sm:hidden">
-                            <ThemeSwitcher />
-                        </div>
                     </div>
                 </div>
             </header>
