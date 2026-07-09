@@ -1,5 +1,5 @@
 # 🎬 LAN YouTube — Local Media Server
-DEVELOPED BY SHREERAJG
+~DEVELOPED BY SHREERAJG
 
 A high-performance, self-hosted media server for your local network. Stream your videos at full quality on any device on the same WiFi/Ethernet.
 
