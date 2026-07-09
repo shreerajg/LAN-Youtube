@@ -5,6 +5,7 @@ const MotionLink = motion(Link)
 import { getStats } from '../api'
 import FolderManager from './FolderManager'
 import PlaylistManager from './PlaylistManager'
+import ThemeSwitcher from './ThemeSwitcher'
 
 export default function Navbar({ onSearch, onLibraryRefresh }) {
     const [query, setQuery] = useState('')
@@ -220,6 +221,8 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
                             </svg>
                             <span className="hidden sm:inline">Playlists</span>
                         </motion.button>
+
+                        <ThemeSwitcher />
                     </div>
                 </div>
             </header>
