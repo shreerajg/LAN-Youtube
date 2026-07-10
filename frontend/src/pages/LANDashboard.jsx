@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { getLanInfo, getLanDevices, getClipboard, addClipboard, deleteClipboardItem, clearClipboard } from '../api'
+import { getLanInfo, getLanDevices, getLanPeers, getClipboard, addClipboard, deleteClipboardItem, clearClipboard } from '../api'
 
 const staggerContainer = {
     hidden: { opacity: 0 },
@@ -16,6 +16,7 @@ import { useToast } from '../components/Toast'
 export default function LANDashboard() {
     const [info, setInfo] = useState(null)
     const [devices, setDevices] = useState([])
+    const [peers, setPeers] = useState([])
     const [scanning, setScanning] = useState(false)
     const [clipboard, setClipboard] = useState([])
     const [clipInput, setClipInput] = useState('')
@@ -52,15 +53,26 @@ export default function LANDashboard() {
         }
     }
 
+    const fetchPeers = async () => {
+        try {
+            const data = await getLanPeers()
+            setPeers(data.peers || [])
+        } catch (err) {
+            console.error(err)
+        }
+    }
+
     useEffect(() => {
         fetchInfo()
         fetchDevices()
         fetchClipboard()
+        fetchPeers()
         
-        // Polling info & clipboard occasionally
+        // Polling info, clipboard, and peers occasionally
         const interval = setInterval(() => {
             fetchInfo()
             fetchClipboard()
+            fetchPeers()
         }, 10000)
         return () => clearInterval(interval)
     }, [])
@@ -228,8 +240,53 @@ export default function LANDashboard() {
                     </div>
                 </motion.div>
 
+                {/* Bento Item: Active Peers */}
+                <motion.div variants={itemVariants} className="glass-card rounded-3xl p-6 shadow-xl flex flex-col md:col-span-1 lg:col-span-1 max-h-[400px]">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-lg font-bold text-white font-['Space_Grotesk'] flex items-center gap-2">
+                            <svg className="w-5 h-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            Active Peers
+                        </h2>
+                        <span className="text-xs px-2 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-lg font-bold">
+                            {peers.length} Online
+                        </span>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar">
+                        {peers.length === 0 ? (
+                            <div className="flex items-center justify-center h-full text-slate-500 text-sm">No peers currently online.</div>
+                        ) : (
+                            peers.map((peer, i) => (
+                                <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/5 hover:border-amber-500/20 hover:bg-amber-500/5 transition-all group">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-lg flex items-center justify-center border bg-amber-500/10 border-amber-500/20 text-amber-400">
+                                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <div className="font-semibold text-sm text-white flex items-center gap-2">
+                                                {peer.name}
+                                                {peer.device_id === localStorage.getItem('lan_device_id') && (
+                                                    <span className="text-[9px] bg-white/10 text-slate-300 px-1.5 py-0.5 rounded uppercase tracking-wider font-bold">You</span>
+                                                )}
+                                            </div>
+                                            <div className="text-xs text-slate-400">
+                                                {peer.ip}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </motion.div>
+
                 {/* Bento Item: Clipboard Sync (Takes full width on tablet, 2 on lg if we want, or spans remaining space) */}
-                <motion.div variants={itemVariants} className="glass-card rounded-3xl p-6 flex flex-col md:col-span-2 lg:col-span-3 min-h-[400px]">
+                <motion.div variants={itemVariants} className="glass-card rounded-3xl p-6 flex flex-col md:col-span-1 lg:col-span-2 min-h-[400px]">
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-lg font-bold text-white font-['Space_Grotesk'] flex items-center gap-2">
                             <svg className="w-5 h-5 text-fuchsia-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
