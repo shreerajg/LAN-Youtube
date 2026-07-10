@@ -116,6 +116,16 @@ export const deleteSharedFile = id =>
 export const getLanDevices = () =>
     fetch(`${BASE}/api/lan/devices`).then(r => r.json())
 
+export const getLanPeers = () =>
+    fetch(`${BASE}/api/lan/peers`).then(r => r.json())
+
+export const sendHeartbeat = (deviceId, name) =>
+    fetch(`${BASE}/api/lan/heartbeat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ device_id: deviceId, name }),
+    }).then(r => r.json())
+
 export const getClipboard = () =>
     fetch(`${BASE}/api/clipboard`).then(r => r.json())
 
