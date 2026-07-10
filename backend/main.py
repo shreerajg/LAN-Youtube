@@ -971,7 +971,39 @@ def get_chat_roster():
     return {"roster": chat_manager.get_roster(), "online": len(chat_manager.active_connections)}
 
 
-# ─── LAN Device Discovery ─────────────────────────────────────────────────────
+# ─── LAN Device Discovery & Presence ────────────────────────────────────────────
+class HeartbeatIn(BaseModel):
+    device_id: str
+    name: str
+
+active_peers: Dict[str, dict] = {}
+
+@app.post("/api/lan/heartbeat")
+def lan_heartbeat(body: HeartbeatIn, request: Request):
+    client_ip = request.client.host if request.client else "unknown"
+    active_peers[body.device_id] = {
+        "name": body.name,
+        "ip": client_ip,
+        "last_seen": time.time()
+    }
+    return {"ok": True}
+
+@app.get("/api/lan/peers")
+def get_lan_peers():
+    now = time.time()
+    valid_peers = []
+    to_delete = []
+    for d_id, data in active_peers.items():
+        if now - data["last_seen"] < 30:
+            valid_peers.append({"device_id": d_id, "name": data["name"], "ip": data["ip"]})
+        else:
+            to_delete.append(d_id)
+            
+    for d_id in to_delete:
+        del active_peers[d_id]
+        
+    return {"peers": valid_peers, "total": len(valid_peers)}
+
 async def ping_host(ip: str) -> Optional[Dict[str, Any]]:
     """Ping a single IP and return info if alive."""
     try:
