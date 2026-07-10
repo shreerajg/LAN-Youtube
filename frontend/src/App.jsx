@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
+import { sendHeartbeat } from './api'
 import HomePage from './pages/HomePage'
 import PlayerPage from './pages/PlayerPage'
 import HistoryPage from './pages/HistoryPage'
@@ -44,6 +45,23 @@ function SystemStatusFooter() {
 export default function App() {
     const location = useLocation()
     
+    useEffect(() => {
+        let deviceId = localStorage.getItem('lan_device_id')
+        if (!deviceId) {
+            deviceId = Math.random().toString(36).substring(2, 10)
+            localStorage.setItem('lan_device_id', deviceId)
+        }
+        
+        const pingHeartbeat = () => {
+            const name = localStorage.getItem('lan_chat_name') || 'Anonymous'
+            sendHeartbeat(deviceId, name).catch(console.error)
+        }
+        
+        pingHeartbeat()
+        const interval = setInterval(pingHeartbeat, 10000)
+        return () => clearInterval(interval)
+    }, [])
+
     return (
         <ToastProvider>
             <AnimatePresence mode="wait">
