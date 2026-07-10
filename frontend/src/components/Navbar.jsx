@@ -131,9 +131,6 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
                                 )}
                             </div>
                         )}
-                        
-                        {/* Theme Switcher always visible first in the row */}
-                        <ThemeSwitcher />
 
                         {/* Files */}
                         <MotionLink
@@ -210,6 +207,8 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
                             </svg>
                             <span className="hidden sm:inline">Add</span>
                         </motion.button>
+
+                        <ThemeSwitcher />
 
                         <motion.button
                             whileTap={{ scale: 0.95 }}
