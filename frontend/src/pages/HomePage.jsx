@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar'
 import VideoCard, { VideoListCard, VideoCardSkeleton } from '../components/VideoCard'
 import { getVideos, searchVideos, getInProgressVideos, getStats, clearVideoHistory } from '../api'
 import PlaylistManager from '../components/PlaylistManager'
+import ThemeSwitcher from '../components/ThemeSwitcher'
 
 export const staggerContainer = {
     hidden: { opacity: 0 },
@@ -380,6 +381,8 @@ export default function HomePage() {
                                     className="input-field text-sm px-4 py-2.5 cursor-pointer text-slate-300 bg-transparent rounded-xl border border-white/[0.08]">
                                     {SORTS.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
                                 </select>
+
+                                <ThemeSwitcher />
 
                                 {/* View toggle */}
                                 <div className="flex rounded-xl overflow-hidden border border-white/[0.08] bg-white/[0.03] shadow-inner">
