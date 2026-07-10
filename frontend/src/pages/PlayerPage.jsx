@@ -71,11 +71,19 @@ export default function PlayerPage() {
     const progressTimerRef = useRef(null)
     const [video, setVideo] = useState(null)
     const [siblings, setSiblings] = useState([])
+    const siblingsRef = useRef([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [theatreMode, setTheatreMode] = useState(false)
+    const [autoPlay, setAutoPlay] = useState(() => localStorage.getItem('phantom_autoplay') === 'true')
 
     const ambientColor = useAmbientColor(video?.thumbnail_url)
+
+    const toggleAutoPlay = () => {
+        const next = !autoPlay
+        setAutoPlay(next)
+        localStorage.setItem('phantom_autoplay', String(next))
+    }
 
     const getActualTime = useCallback((currentTime) => {
         return currentTime || 0
@@ -99,7 +107,13 @@ export default function PlayerPage() {
                 // Fetch sibling videos from same category
                 return getVideos('date_added').then(all => {
                     const cat = v.category || 'Uncategorized'
-                    setSiblings(all.filter(s => s.category === cat && s.id !== v.id))
+                    const categoryVideos = all.filter(s => s.category === cat)
+                    // Sort alphabetically by filename
+                    categoryVideos.sort((a, b) => a.filename.localeCompare(b.filename, undefined, { numeric: true, sensitivity: 'base' }))
+                    const currentIndex = categoryVideos.findIndex(s => s.id === v.id)
+                    const nextVideos = currentIndex >= 0 ? categoryVideos.slice(currentIndex + 1) : []
+                    setSiblings(nextVideos)
+                    siblingsRef.current = nextVideos
                 })
             })
             .catch(() => setError('Video not found'))
@@ -177,6 +191,18 @@ export default function PlayerPage() {
         // Save on pause
         plyr.on('pause', () => {
             saveProgress(plyr.currentTime)
+        })
+
+        // Auto play next on ended
+        plyr.on('ended', () => {
+            if (localStorage.getItem('phantom_autoplay') === 'true') {
+                const nextSibs = siblingsRef.current
+                if (nextSibs && nextSibs.length > 0) {
+                    setTimeout(() => {
+                        navigate(`/player/${nextSibs[0].id}`)
+                    }, 1000)
+                }
+            }
         })
 
         playerRef.current = plyr
@@ -395,7 +421,7 @@ export default function PlayerPage() {
 
                     {/* Play Next / Shuffle */}
                     {siblings.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mb-5">
+                        <div className="flex flex-wrap items-center gap-3 mb-5">
                             <button
                                 id="play-next-btn"
                                 onClick={handlePlayNext}
@@ -420,7 +446,20 @@ export default function PlayerPage() {
                                 </svg>
                                 Shuffle
                             </button>
-                            <span className="text-xs text-slate-600 self-center">
+
+                            <div className="w-px h-6 bg-white/[0.06] mx-1" />
+                            
+                            <label className="flex items-center gap-2 cursor-pointer group px-2 py-1">
+                                <div className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-300 ${autoPlay ? 'bg-violet-500' : 'bg-slate-700'}`}>
+                                    <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform duration-300`} style={{ transform: autoPlay ? 'translateX(18px)' : 'translateX(4px)' }} />
+                                </div>
+                                <span className="text-sm font-semibold text-slate-400 group-hover:text-slate-200 transition-colors">
+                                    Auto-Play Next
+                                </span>
+                                <input type="checkbox" className="hidden" checked={autoPlay} onChange={toggleAutoPlay} />
+                            </label>
+
+                            <span className="text-xs text-slate-600 ml-auto self-center">
                                 {siblings.length} more in {video.category}
                             </span>
                         </div>
