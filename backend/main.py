@@ -1181,7 +1181,9 @@ if os.path.exists(FRONT_DIST):
     async def serve_spa(full_path: str):
         index = os.path.join(FRONT_DIST, "index.html")
         if os.path.exists(index):
-            return FileResponse(index)
+            response = FileResponse(index)
+            response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+            return response
         return HTMLResponse("<h1>Frontend not built. Run: npm run build inside /frontend</h1>")
 else:
     @app.get("/")
