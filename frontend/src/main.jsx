@@ -16,11 +16,14 @@ console.log(
 );
 
 import { ThemeProvider } from './context/ThemeContext'
+import { FontProvider } from './context/FontContext'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-    <ThemeProvider>
-        <BrowserRouter>
-            <App />
-        </BrowserRouter>
-    </ThemeProvider>
+    <FontProvider>
+        <ThemeProvider>
+            <BrowserRouter>
+                <App />
+            </BrowserRouter>
+        </ThemeProvider>
+    </FontProvider>
 )
