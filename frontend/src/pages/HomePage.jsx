@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import Navbar from '../components/Navbar'
 import VideoCard, { VideoListCard, VideoCardSkeleton } from '../components/VideoCard'
 import { getVideos, searchVideos, getInProgressVideos, getStats, clearVideoHistory } from '../api'
@@ -76,6 +76,37 @@ function StatCounter({ value, label, color, icon }) {
                 <p className="text-xs text-slate-400 font-bold uppercase tracking-[0.1em]">{label}</p>
             </div>
         </div>
+    )
+}
+
+// ── Scroll to Top FAB ────────────────────────────────────────────────────────
+function ScrollToTop() {
+    const [visible, setVisible] = useState(false)
+    useEffect(() => {
+        const handleScroll = () => setVisible(window.scrollY > 300)
+        window.addEventListener('scroll', handleScroll, { passive: true })
+        return () => window.removeEventListener('scroll', handleScroll)
+    }, [])
+
+    return (
+        <AnimatePresence>
+            {visible && (
+                <motion.button
+                    initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.8, y: 20 }}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                    className="fixed bottom-12 right-6 z-[60] w-12 h-12 rounded-full bg-violet-600 text-white shadow-lg shadow-violet-600/40 flex items-center justify-center border border-white/10 backdrop-blur-sm"
+                    title="Scroll to top"
+                >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                    </svg>
+                </motion.button>
+            )}
+        </AnimatePresence>
     )
 }
 
@@ -218,8 +249,10 @@ function CategorySection({ category, videos, emoji, onAddToPlaylist, onFavoriteT
                 </button>
             </div>
             {!collapsed && (
-                <motion.div variants={staggerContainer} initial="hidden" animate="show" className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 stagger">
-                    {videos.map(v => <VideoCard key={v.id} video={v} onAddToPlaylist={onAddToPlaylist} onFavoriteToggle={onFavoriteToggle} onRemoveHistory={onRemoveHistory} />)}
+                <motion.div layout variants={staggerContainer} initial="hidden" animate="show" className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 stagger">
+                    <AnimatePresence>
+                        {videos.map(v => <VideoCard key={v.id} video={v} onAddToPlaylist={onAddToPlaylist} onFavoriteToggle={onFavoriteToggle} onRemoveHistory={onRemoveHistory} />)}
+                    </AnimatePresence>
                 </motion.div>
             )}
         </section>
@@ -467,15 +500,19 @@ export default function HomePage() {
 
                         {/* Filtered / sorted grid */}
                         {!showByCat && displayed.length > 0 && viewMode === 'grid' && (
-                            <motion.div variants={staggerContainer} initial="hidden" animate="show" className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 stagger">
-                                {displayed.map(v => <VideoCard key={v.id} video={v} onAddToPlaylist={setPlaylistVideo} onFavoriteToggle={fetchAll} onRemoveHistory={handleRemoveHistory} />)}
+                            <motion.div layout variants={staggerContainer} initial="hidden" animate="show" className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 stagger">
+                                <AnimatePresence>
+                                    {displayed.map(v => <VideoCard key={v.id} video={v} onAddToPlaylist={setPlaylistVideo} onFavoriteToggle={fetchAll} onRemoveHistory={handleRemoveHistory} />)}
+                                </AnimatePresence>
                             </motion.div>
                         )}
 
                         {/* List view */}
                         {displayed.length > 0 && viewMode === 'list' && (
-                            <motion.div variants={staggerContainer} initial="hidden" animate="show" className="flex flex-col gap-2 stagger">
-                                {displayed.map(v => <VideoListCard key={v.id} video={v} onAddToPlaylist={setPlaylistVideo} onFavoriteToggle={fetchAll} onRemoveHistory={handleRemoveHistory} />)}
+                            <motion.div layout variants={staggerContainer} initial="hidden" animate="show" className="flex flex-col gap-2 stagger">
+                                <AnimatePresence>
+                                    {displayed.map(v => <VideoListCard key={v.id} video={v} onAddToPlaylist={setPlaylistVideo} onFavoriteToggle={fetchAll} onRemoveHistory={handleRemoveHistory} />)}
+                                </AnimatePresence>
                             </motion.div>
                         )}
 
@@ -504,6 +541,7 @@ export default function HomePage() {
                     onClose={() => setPlaylistVideo(null)}
                 />
             )}
+            <ScrollToTop />
         </div>
     )
 }
