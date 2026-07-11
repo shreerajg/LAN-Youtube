@@ -6,6 +6,7 @@ import { getStats } from '../api'
 import FolderManager from './FolderManager'
 import PlaylistManager from './PlaylistManager'
 import ThemeSwitcher from './ThemeSwitcher'
+import FontSwitcher from './FontSwitcher'
 
 export default function Navbar({ onSearch, onLibraryRefresh }) {
     const [query, setQuery] = useState('')
@@ -226,6 +227,7 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
                             <span className="hidden sm:inline">Add</span>
                         </motion.button>
 
+                        <FontSwitcher />
                         <ThemeSwitcher />
 
                         <motion.button
