@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
 import Plyr from 'plyr'
 import { getVideo, getVideos, getStreamUrl, getDownloadUrl, updateProgress, getHlsUrl } from '../api'
 import Hls from 'hls.js'
@@ -76,8 +77,18 @@ export default function PlayerPage() {
     const [error, setError] = useState(null)
     const [theatreMode, setTheatreMode] = useState(false)
     const [autoPlay, setAutoPlay] = useState(() => localStorage.getItem('phantom_autoplay') === 'true')
+    const [shortcutFeedback, setShortcutFeedback] = useState(null)
+    const feedbackTimerRef = useRef(null)
 
     const ambientColor = useAmbientColor(video?.thumbnail_url)
+
+    const showFeedback = useCallback((icon, text) => {
+        setShortcutFeedback({ icon, text })
+        clearTimeout(feedbackTimerRef.current)
+        feedbackTimerRef.current = setTimeout(() => {
+            setShortcutFeedback(null)
+        }, 1200)
+    }, [])
 
     const toggleAutoPlay = () => {
         const next = !autoPlay
@@ -191,6 +202,23 @@ export default function PlayerPage() {
         // Save on pause
         plyr.on('pause', () => {
             saveProgress(plyr.currentTime)
+            showFeedback('⏸️', 'Paused')
+        })
+
+        plyr.on('play', () => {
+            showFeedback('▶️', 'Playing')
+        })
+
+        plyr.on('volumechange', () => {
+            if (plyr.muted) {
+                showFeedback('🔇', 'Muted')
+            } else {
+                showFeedback('🔊', `${Math.round(plyr.volume * 100)}%`)
+            }
+        })
+
+        plyr.on('seeked', () => {
+            showFeedback('⏩', formatDuration(plyr.currentTime))
         })
 
         // Auto play next on ended
@@ -243,8 +271,9 @@ export default function PlayerPage() {
                 hls.destroy()
             }
             clearTimeout(progressTimerRef.current)
+            clearTimeout(feedbackTimerRef.current)
         }
-    }, [video, saveProgress])
+    }, [video, saveProgress, showFeedback])
 
     // Play Next — next in siblings list
     const handlePlayNext = useCallback(() => {
@@ -354,7 +383,7 @@ export default function PlayerPage() {
                     {theatreMode && (
                         <div
                             className="ambient-glow active"
-                            style={{ background: `rgb(${ambientColor})` }}
+                            style={{ background: `rgb(${ambientColor})`, transition: 'opacity 0.8s ease' }}
                         />
                     )}
                     <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-violet-900/40 ring-1 ring-violet-500/10">
@@ -365,6 +394,20 @@ export default function PlayerPage() {
                             playsInline
                             preload="auto"
                         />
+                        <AnimatePresence>
+                            {shortcutFeedback && (
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 1.2 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[60] pointer-events-none flex flex-col items-center justify-center bg-black/60 backdrop-blur-md rounded-2xl p-6 min-w-[120px] border border-white/10 shadow-2xl"
+                                >
+                                    <span className="text-4xl mb-2">{shortcutFeedback.icon}</span>
+                                    <span className="text-white font-bold tracking-wider">{shortcutFeedback.text}</span>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
                 </div>
 
