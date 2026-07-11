@@ -84,8 +84,9 @@ export default function VideoCard({ video, style, onAddToPlaylist, onFavoriteTog
 
     return (
         <motion.article
+            layout
             variants={videoCardVariants}
-            whileHover={{ y: -4 }}
+            whileHover={{ y: -4, scale: 1.02 }}
             id={`video-card-${video.id}`}
             className="video-card group"
             style={style}
@@ -243,6 +244,7 @@ export function VideoListCard({ video, style, onFavoriteToggle, onRemoveHistory,
 
     return (
         <motion.article
+            layout
             variants={videoCardVariants}
             id={`video-list-${video.id}`}
             className="list-card group"
