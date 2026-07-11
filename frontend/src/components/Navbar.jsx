@@ -37,6 +37,17 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
         return () => clearTimeout(t)
     }, [query, onSearch])
 
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault()
+                document.getElementById('search-input')?.focus()
+            }
+        }
+        window.addEventListener('keydown', handleKeyDown)
+        return () => window.removeEventListener('keydown', handleKeyDown)
+    }, [])
+
     const handleScanComplete = () => {
         loadStats()
         onLibraryRefresh && onLibraryRefresh()
@@ -81,8 +92,15 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
                                 value={query}
                                 onChange={e => setQuery(e.target.value)}
                                 placeholder="Search your library…"
-                                className="input-field w-full pl-10 pr-10 py-2.5 text-sm"
+                                className="input-field w-full pl-10 pr-16 py-2.5 text-sm transition-shadow focus:ring-2 focus:ring-violet-500/50"
                             />
+                            {!query && (
+                                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center pointer-events-none">
+                                    <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md border border-slate-700 bg-slate-800/50 text-[10px] font-mono text-slate-400 font-semibold shadow-sm tracking-widest">
+                                        <span className="text-[11px] font-sans mr-0.5">⌘</span>K
+                                    </kbd>
+                                </div>
+                            )}
                             {query && (
                                 <button onClick={() => setQuery('')}
                                     className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors">
