@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=Roboto:wght@300;400;500;700;900&family=Outfit:wght@300;400;500;600;700;800&family=Nunito:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -133,6 +133,10 @@ body {
   overflow-x: hidden;
   transition: background-color 0.5s ease, color 0.5s ease;
 }
+
+[data-font="roboto"] body { font-family: 'Roboto', system-ui, sans-serif; }
+[data-font="outfit"] body { font-family: 'Outfit', system-ui, sans-serif; }
+[data-font="nunito"] body { font-family: 'Nunito', system-ui, sans-serif; }
 
 /* ── Custom Scrollbar ── */
 ::-webkit-scrollbar {
