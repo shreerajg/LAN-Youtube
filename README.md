@@ -78,7 +78,7 @@ Access at `http://localhost:5173` — proxies API calls to FastAPI on port 8000.
 | **Category Filter** | Subfolders auto-become categories |
 | **Multi-Device** | Serves all LAN devices simultaneously |
 | **Auto IP Print** | Shows your `192.168.x.x:8000` address on startup |
-| ** UI-Customization** | Choose between Inter, Roboto, Outfit, Nunito fonts.  Choose between light, dark, and auto theme.
+| **UI-Customization** | Choose between Inter, Roboto, Outfit, Nunito fonts.  Choose between light, dark, and auto theme.
 ---
 
 ## ⌨️ Player Keyboard Shortcuts
