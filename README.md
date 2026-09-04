@@ -81,7 +81,7 @@ Access at `http://localhost:5173` — proxies API calls to FastAPI on port 8000.
 | **UI-Customization** | Choose between Inter, Roboto, Outfit, Nunito fonts.  Choose between light, dark, and auto theme.
 | **Chat** | Chat with other users on your LAN |
 | **History** | View your watch history |
-
+| **Files** | View all files on your LAN |
 ---
 
 ## ⌨️ Player Keyboard Shortcuts
