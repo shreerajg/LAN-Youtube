@@ -88,6 +88,16 @@ class ClipboardItem(Base):
     date_created = Column(DateTime, default=datetime.utcnow)
 
 
+class VideoBookmark(Base):
+    __tablename__ = "video_bookmarks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    video_id = Column(Integer, ForeignKey("videos.id"), nullable=False)
+    label = Column(String, nullable=False, default="")
+    timestamp_secs = Column(Float, nullable=False)
+    date_created = Column(DateTime, default=datetime.utcnow)
+
+
 def init_db():
     Base.metadata.create_all(bind=engine)
 
@@ -134,6 +144,17 @@ def init_db():
                     device_ip TEXT,
                     device_name TEXT,
                     date_created DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+            """))
+        if not inspector.has_table("video_bookmarks"):
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS video_bookmarks (
+                    id INTEGER PRIMARY KEY,
+                    video_id INTEGER NOT NULL,
+                    label TEXT NOT NULL DEFAULT '',
+                    timestamp_secs REAL NOT NULL,
+                    date_created DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY(video_id) REFERENCES videos(id)
                 )
             """))
         conn.commit()
