@@ -8,6 +8,7 @@ import HistoryPage from './pages/HistoryPage'
 import FilesPage from './pages/FilesPage'
 import ChatPage from './pages/ChatPage'
 import LANDashboard from './pages/LANDashboard'
+import StatsPage from './pages/StatsPage'
 import { ToastProvider } from './components/Toast'
 
 function PageWrapper({ children }) {
@@ -72,6 +73,7 @@ export default function App() {
                     <Route path="/files" element={<PageWrapper><FilesPage /></PageWrapper>} />
                     <Route path="/chat" element={<PageWrapper><ChatPage /></PageWrapper>} />
                     <Route path="/lan" element={<PageWrapper><LANDashboard /></PageWrapper>} />
+                    <Route path="/stats" element={<PageWrapper><StatsPage /></PageWrapper>} />
                     <Route path="*" element={<PageWrapper><HomePage /></PageWrapper>} />
                 </Routes>
             </AnimatePresence>
