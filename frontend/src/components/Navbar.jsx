@@ -151,6 +151,23 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
                             </div>
                         )}
 
+                        {/* Stats */}
+                        <MotionLink
+                            whileTap={{ scale: 0.95 }}
+                            to="/stats"
+                            className={`flex items-center justify-center gap-2 px-3 py-2.5 sm:px-4 text-sm font-semibold rounded-xl transition-all duration-300 min-w-[70px] sm:min-w-0 border ${
+                                location.pathname === '/stats'
+                                ? 'bg-violet-500/20 text-violet-300 border-violet-500/40 shadow-[0_0_15px_rgba(139,92,246,0.2)]'
+                                : 'bg-violet-500/10 text-violet-400 border-violet-500/15 hover:bg-violet-500/20 hover:border-violet-500/30 hover:text-violet-300'
+                            }`}
+                            title="Watch Statistics"
+                        >
+                            <svg className="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
+                            <span className="hidden sm:inline">Stats</span>
+                        </MotionLink>
+
                         {/* Files */}
                         <MotionLink
                             whileTap={{ scale: 0.95 }}
