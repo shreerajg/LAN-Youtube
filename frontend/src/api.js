@@ -156,3 +156,22 @@ export const getWsUrl = () => {
     const baseUrl = new URL(BASE || loc.origin);
     return `${protocol}//${baseUrl.host}/api/ws/chat`;
 }
+
+// ─── Bookmarks ────────────────────────────────────────────────────────────────
+export const getBookmarks = (videoId) =>
+    fetch(`${BASE}/api/videos/${videoId}/bookmarks`).then(r => r.json())
+
+export const addBookmark = (videoId, label, timestampSecs) =>
+    fetch(`${BASE}/api/videos/${videoId}/bookmarks`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ label, timestamp_secs: timestampSecs }),
+    }).then(r => r.json())
+
+export const deleteBookmark = (bookmarkId) =>
+    fetch(`${BASE}/api/bookmarks/${bookmarkId}`, { method: 'DELETE' }).then(r => r.json())
+
+// ─── Watch Statistics ─────────────────────────────────────────────────────────
+export const getWatchStats = () =>
+    fetch(`${BASE}/api/stats/watch`).then(r => r.json())
+
