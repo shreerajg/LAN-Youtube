@@ -32,7 +32,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from datetime import datetime
 
-from database import init_db, get_db, Video, WatchedFolder, SessionLocal, Playlist, PlaylistItem, SharedFile, ClipboardItem
+from database import init_db, get_db, Video, WatchedFolder, SessionLocal, Playlist, PlaylistItem, SharedFile, ClipboardItem, VideoBookmark
 from scanner import scan_library
 
 # ─── Constants ────────────────────────────────────────────────────────────────
@@ -1171,6 +1171,116 @@ def get_qr_code():
           </text>
         </svg>"""
         return Response(content=svg, media_type="image/svg+xml")
+
+
+# ─── Bookmarks / Chapters ─────────────────────────────────────────────────────
+class BookmarkIn(BaseModel):
+    label: str = ""
+    timestamp_secs: float
+
+
+class BookmarkOut(BaseModel):
+    id: int
+    video_id: int
+    label: str
+    timestamp_secs: float
+    date_created: datetime
+
+    model_config = {"from_attributes": True}
+
+
+@app.get("/api/videos/{video_id}/bookmarks", response_model=List[BookmarkOut])
+def list_bookmarks(video_id: int, db: Session = Depends(get_db)):
+    v = db.query(Video).filter(Video.id == video_id).first()
+    if not v:
+        raise HTTPException(status_code=404, detail="Video not found")
+    bmarks = (
+        db.query(VideoBookmark)
+        .filter(VideoBookmark.video_id == video_id)
+        .order_by(VideoBookmark.timestamp_secs.asc())
+        .all()
+    )
+    return bmarks
+
+
+@app.post("/api/videos/{video_id}/bookmarks", response_model=BookmarkOut)
+def add_bookmark(video_id: int, body: BookmarkIn, db: Session = Depends(get_db)):
+    v = db.query(Video).filter(Video.id == video_id).first()
+    if not v:
+        raise HTTPException(status_code=404, detail="Video not found")
+    bmark = VideoBookmark(
+        video_id=video_id,
+        label=body.label or "",
+        timestamp_secs=body.timestamp_secs,
+        date_created=datetime.utcnow(),
+    )
+    db.add(bmark)
+    db.commit()
+    db.refresh(bmark)
+    return bmark
+
+
+@app.delete("/api/bookmarks/{bookmark_id}")
+def delete_bookmark(bookmark_id: int, db: Session = Depends(get_db)):
+    bmark = db.query(VideoBookmark).filter(VideoBookmark.id == bookmark_id).first()
+    if not bmark:
+        raise HTTPException(status_code=404, detail="Bookmark not found")
+    db.delete(bmark)
+    db.commit()
+    return {"ok": True}
+
+
+# ─── Watch Statistics ──────────────────────────────────────────────────────────
+@app.get("/api/stats/watch")
+def get_watch_stats(db: Session = Depends(get_db)):
+    """Rich watch statistics: total time, top videos, category breakdown."""
+    watched = (
+        db.query(Video)
+        .filter(Video.last_watched_at.isnot(None))
+        .all()
+    )
+    total_watch_secs = sum(v.watch_progress_secs or 0 for v in watched)
+    total_videos_watched = len(watched)
+
+    # Top 10 most-watched by progress
+    top_videos = sorted(watched, key=lambda v: v.watch_progress_secs or 0, reverse=True)[:10]
+    top_out = []
+    for v in top_videos:
+        top_out.append({
+            "id": v.id,
+            "filename": v.filename,
+            "category": v.category or "Uncategorized",
+            "watch_progress_secs": v.watch_progress_secs or 0,
+            "duration": v.duration or 0,
+            "percent": round(min(100, (v.watch_progress_secs or 0) / (v.duration or 1) * 100), 1),
+            "thumbnail_url": f"/api/thumbnail/{v.id}",
+            "last_watched_at": v.last_watched_at.isoformat() if v.last_watched_at else None,
+        })
+
+    # Category breakdown
+    cat_map: Dict[str, float] = {}
+    for v in watched:
+        cat = v.category or "Uncategorized"
+        cat_map[cat] = cat_map.get(cat, 0) + (v.watch_progress_secs or 0)
+    cat_breakdown = sorted(
+        [{"category": k, "total_secs": round(v, 1)} for k, v in cat_map.items()],
+        key=lambda x: x["total_secs"],
+        reverse=True,
+    )
+
+    # Favorites stats
+    favorites_count = db.query(Video).filter(Video.is_favorite == True).count()
+    total_videos = db.query(Video).count()
+
+    return {
+        "total_watch_secs": round(total_watch_secs, 1),
+        "total_watch_hours": round(total_watch_secs / 3600, 2),
+        "total_videos_watched": total_videos_watched,
+        "total_videos": total_videos,
+        "favorites_count": favorites_count,
+        "top_videos": top_out,
+        "category_breakdown": cat_breakdown,
+    }
 
 
 # ─── Serve React SPA ──────────────────────────────────────────────────────────
