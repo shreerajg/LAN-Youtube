@@ -2,10 +2,12 @@ import React, { useEffect, useRef, useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import Plyr from 'plyr'
-import { getVideo, getVideos, getStreamUrl, getDownloadUrl, updateProgress, getHlsUrl } from '../api'
+import { getVideo, getVideos, getStreamUrl, getDownloadUrl, updateProgress, getHlsUrl, getBookmarks, addBookmark, deleteBookmark } from '../api'
 import Hls from 'hls.js'
 
 const SPEED_KEY = 'phantom_playback_speed'
+const VOLUME_KEY = 'phantom_volume'
+const MUTED_KEY = 'phantom_muted'
 
 function formatDuration(secs) {
     if (!secs) return '0:00'
@@ -64,6 +66,233 @@ function useAmbientColor(thumbnailUrl) {
     return color
 }
 
+// ── Sleep Timer Component ─────────────────────────────────────────────────────
+const SLEEP_OPTIONS = [
+    { label: '15 min', secs: 15 * 60 },
+    { label: '30 min', secs: 30 * 60 },
+    { label: '60 min', secs: 60 * 60 },
+    { label: '90 min', secs: 90 * 60 },
+]
+
+function SleepTimer({ playerRef }) {
+    const [open, setOpen] = useState(false)
+    const [remaining, setRemaining] = useState(null) // secs
+    const intervalRef = useRef(null)
+
+    const start = (secs) => {
+        clearInterval(intervalRef.current)
+        setRemaining(secs)
+        setOpen(false)
+        intervalRef.current = setInterval(() => {
+            setRemaining(prev => {
+                if (prev <= 1) {
+                    clearInterval(intervalRef.current)
+                    // Pause the player
+                    try { playerRef.current?.pause() } catch {}
+                    return null
+                }
+                return prev - 1
+            })
+        }, 1000)
+    }
+
+    const cancel = () => {
+        clearInterval(intervalRef.current)
+        setRemaining(null)
+        setOpen(false)
+    }
+
+    useEffect(() => () => clearInterval(intervalRef.current), [])
+
+    const fmtCountdown = (secs) => {
+        const m = Math.floor(secs / 60)
+        const s = secs % 60
+        return `${m}:${String(s).padStart(2, '0')}`
+    }
+
+    return (
+        <div className="relative">
+            <button
+                id="sleep-timer-btn"
+                onClick={() => remaining !== null ? cancel() : setOpen(o => !o)}
+                title={remaining !== null ? `Sleep timer: ${fmtCountdown(remaining)} — click to cancel` : 'Sleep Timer'}
+                className={`action-chip ${remaining !== null ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' : ''}`}
+            >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                        d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+                {remaining !== null
+                    ? <span className="font-mono text-xs font-bold">{fmtCountdown(remaining)}</span>
+                    : <span className="hidden sm:inline">Sleep</span>
+                }
+            </button>
+
+            <AnimatePresence>
+                {open && remaining === null && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -8, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -8, scale: 0.95 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute right-0 top-full mt-2 z-[200] glass rounded-xl border border-white/10 shadow-2xl p-3 min-w-[160px]"
+                    >
+                        <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-2 px-1">Sleep after</p>
+                        {SLEEP_OPTIONS.map(opt => (
+                            <button
+                                key={opt.secs}
+                                onClick={() => start(opt.secs)}
+                                className="w-full text-left px-3 py-2 rounded-lg text-sm text-slate-300 hover:bg-amber-500/15 hover:text-amber-300 transition-colors duration-150"
+                            >
+                                {opt.label}
+                            </button>
+                        ))}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    )
+}
+
+// ── Bookmarks Panel ───────────────────────────────────────────────────────────
+function BookmarksPanel({ videoId, playerRef, videoDuration }) {
+    const [bookmarks, setBookmarks] = useState([])
+    const [labelInput, setLabelInput] = useState('')
+    const [adding, setAdding] = useState(false)
+    const [showInput, setShowInput] = useState(false)
+
+    const refresh = useCallback(() => {
+        getBookmarks(videoId).then(setBookmarks).catch(() => {})
+    }, [videoId])
+
+    useEffect(() => { refresh() }, [refresh])
+
+    const handleAdd = async () => {
+        let currentTime = 0
+        try { currentTime = playerRef.current?.currentTime || 0 } catch {}
+        setAdding(true)
+        try {
+            await addBookmark(videoId, labelInput.trim() || formatDuration(currentTime), currentTime)
+            setLabelInput('')
+            setShowInput(false)
+            refresh()
+        } catch {}
+        setAdding(false)
+    }
+
+    const handleDelete = async (id) => {
+        await deleteBookmark(id).catch(() => {})
+        refresh()
+    }
+
+    const seekTo = (secs) => {
+        try {
+            if (playerRef.current) {
+                playerRef.current.currentTime = secs
+                playerRef.current.play()
+            }
+        } catch {}
+    }
+
+    return (
+        <div className="border-t border-white/[0.05] pt-4 mt-4">
+            <div className="flex items-center justify-between mb-3">
+                <p className="text-[10px] text-slate-600 uppercase tracking-widest font-bold">
+                    🔖 Bookmarks {bookmarks.length > 0 && <span className="text-violet-400">({bookmarks.length})</span>}
+                </p>
+                <button
+                    id="add-bookmark-btn"
+                    onClick={() => setShowInput(s => !s)}
+                    className="text-xs text-violet-400 hover:text-violet-300 font-semibold transition-colors"
+                >
+                    + Add at current time
+                </button>
+            </div>
+
+            <AnimatePresence>
+                {showInput && (
+                    <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="overflow-hidden mb-3"
+                    >
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                value={labelInput}
+                                onChange={e => setLabelInput(e.target.value)}
+                                onKeyDown={e => e.key === 'Enter' && handleAdd()}
+                                placeholder="Bookmark label (optional)"
+                                className="input-field flex-1 text-sm px-3 py-2"
+                                autoFocus
+                            />
+                            <button
+                                onClick={handleAdd}
+                                disabled={adding}
+                                className="btn-primary px-4 py-2 text-sm font-semibold"
+                            >
+                                {adding ? '…' : 'Save'}
+                            </button>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {bookmarks.length === 0 && (
+                <p className="text-xs text-slate-600 italic">No bookmarks yet. Pause at any moment and click "+ Add".</p>
+            )}
+
+            <div className="flex flex-wrap gap-2">
+                {bookmarks.map(b => (
+                    <motion.div
+                        key={b.id}
+                        layout
+                        initial={{ opacity: 0, scale: 0.85 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.85 }}
+                        className="group flex items-center gap-1.5 bg-violet-500/10 border border-violet-500/20 rounded-lg pl-3 pr-1.5 py-1.5 cursor-pointer hover:bg-violet-500/20 hover:border-violet-500/40 transition-all duration-200"
+                        onClick={() => seekTo(b.timestamp_secs)}
+                        title={`Jump to ${formatDuration(b.timestamp_secs)}`}
+                    >
+                        <span className="text-violet-400 text-xs font-mono font-bold">
+                            {formatDuration(b.timestamp_secs)}
+                        </span>
+                        {b.label && (
+                            <span className="text-slate-300 text-xs max-w-[120px] truncate">{b.label}</span>
+                        )}
+                        <button
+                            onClick={e => { e.stopPropagation(); handleDelete(b.id) }}
+                            className="opacity-0 group-hover:opacity-100 text-slate-600 hover:text-red-400 transition-all ml-1"
+                            title="Delete bookmark"
+                        >
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </motion.div>
+                ))}
+            </div>
+
+            {/* Mini progress bar showing bookmark positions */}
+            {bookmarks.length > 0 && videoDuration > 0 && (
+                <div className="relative mt-3 h-1 bg-white/[0.04] rounded-full overflow-visible">
+                    {bookmarks.map(b => (
+                        <div
+                            key={b.id}
+                            className="absolute top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-violet-400 border-2 border-[#0d0d1f] cursor-pointer hover:scale-150 transition-transform"
+                            style={{ left: `${Math.min(98, (b.timestamp_secs / videoDuration) * 100)}%` }}
+                            onClick={() => seekTo(b.timestamp_secs)}
+                            title={`${b.label || ''} — ${formatDuration(b.timestamp_secs)}`}
+                        />
+                    ))}
+                    <div className="h-full bg-white/[0.04] rounded-full w-full" />
+                </div>
+            )}
+        </div>
+    )
+}
+
 export default function PlayerPage() {
     const { id } = useParams()
     const navigate = useNavigate()
@@ -78,6 +307,7 @@ export default function PlayerPage() {
     const [theatreMode, setTheatreMode] = useState(false)
     const [autoPlay, setAutoPlay] = useState(() => localStorage.getItem('phantom_autoplay') === 'true')
     const [shortcutFeedback, setShortcutFeedback] = useState(null)
+    const [pipActive, setPipActive] = useState(false)
     const feedbackTimerRef = useRef(null)
 
     const ambientColor = useAmbientColor(video?.thumbnail_url)
@@ -95,6 +325,28 @@ export default function PlayerPage() {
         setAutoPlay(next)
         localStorage.setItem('phantom_autoplay', String(next))
     }
+
+    // PiP toggle
+    const togglePip = useCallback(async () => {
+        try {
+            if (document.pictureInPictureElement) {
+                await document.exitPictureInPicture()
+                setPipActive(false)
+            } else if (videoRef.current) {
+                await videoRef.current.requestPictureInPicture()
+                setPipActive(true)
+            }
+        } catch (err) {
+            console.warn('PiP not supported or failed:', err)
+        }
+    }, [])
+
+    // Track PiP exit from browser chrome
+    useEffect(() => {
+        const onExit = () => setPipActive(false)
+        document.addEventListener('leavepictureinpicture', onExit)
+        return () => document.removeEventListener('leavepictureinpicture', onExit)
+    }, [])
 
     const getActualTime = useCallback((currentTime) => {
         return currentTime || 0
@@ -140,6 +392,8 @@ export default function PlayerPage() {
         }
 
         const savedSpeed = parseFloat(localStorage.getItem(SPEED_KEY)) || 1
+        const savedVolume = parseFloat(localStorage.getItem(VOLUME_KEY))
+        const savedMuted = localStorage.getItem(MUTED_KEY) === 'true'
 
         const options = {
             controls: [
@@ -181,6 +435,15 @@ export default function PlayerPage() {
             if (savedSpeed !== 1) {
                 try { plyr.speed = savedSpeed } catch { }
             }
+            // ── Volume Memory: restore saved volume/mute ──
+            try {
+                if (!isNaN(savedVolume) && savedVolume >= 0 && savedVolume <= 1) {
+                    plyr.volume = savedVolume
+                }
+                if (savedMuted) {
+                    plyr.muted = true
+                }
+            } catch { }
         })
 
         // Save speed on change
@@ -188,6 +451,19 @@ export default function PlayerPage() {
             try {
                 const spd = plyr.speed
                 if (spd) localStorage.setItem(SPEED_KEY, String(spd))
+            } catch { }
+        })
+
+        // ── Volume Memory: persist volume/mute changes ──
+        plyr.on('volumechange', () => {
+            try {
+                localStorage.setItem(VOLUME_KEY, String(plyr.volume))
+                localStorage.setItem(MUTED_KEY, String(plyr.muted))
+                if (plyr.muted) {
+                    showFeedback('🔇', 'Muted')
+                } else {
+                    showFeedback('🔊', `${Math.round(plyr.volume * 100)}%`)
+                }
             } catch { }
         })
 
@@ -207,14 +483,6 @@ export default function PlayerPage() {
 
         plyr.on('play', () => {
             showFeedback('▶️', 'Playing')
-        })
-
-        plyr.on('volumechange', () => {
-            if (plyr.muted) {
-                showFeedback('🔇', 'Muted')
-            } else {
-                showFeedback('🔊', `${Math.round(plyr.volume * 100)}%`)
-            }
         })
 
         plyr.on('seeked', () => {
@@ -348,6 +616,9 @@ export default function PlayerPage() {
 
                 {/* Actions */}
                 <div className="flex items-center gap-2 shrink-0">
+                    {/* Sleep Timer */}
+                    <SleepTimer playerRef={playerRef} />
+
                     {/* Theatre Mode */}
                     <button
                         id="theatre-mode-btn"
@@ -361,6 +632,23 @@ export default function PlayerPage() {
                         </svg>
                         <span className="hidden sm:inline">Theatre</span>
                     </button>
+
+                    {/* Picture-in-Picture */}
+                    {document.pictureInPictureEnabled && (
+                        <button
+                            id="pip-btn"
+                            onClick={togglePip}
+                            title="Picture-in-Picture"
+                            className={`action-chip ${pipActive ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40' : ''}`}
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                    d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3" />
+                                <rect x="10" y="11" width="9" height="6" rx="1" strokeWidth={2} />
+                            </svg>
+                            <span className="hidden sm:inline">PiP</span>
+                        </button>
+                    )}
 
                     <a
                         id="download-video-btn"
@@ -508,8 +796,15 @@ export default function PlayerPage() {
                         </div>
                     )}
 
+                    {/* Bookmarks Panel */}
+                    <BookmarksPanel
+                        videoId={parseInt(id)}
+                        playerRef={playerRef}
+                        videoDuration={video.duration || 0}
+                    />
+
                     {/* Keyboard shortcuts */}
-                    <div className="border-t border-white/[0.05] pt-4">
+                    <div className="border-t border-white/[0.05] pt-4 mt-4">
                         <p className="text-[10px] text-slate-600 uppercase tracking-widest font-bold mb-3">Keyboard Shortcuts</p>
                         <div className="flex flex-wrap gap-x-5 gap-y-2">
                             {SHORTCUTS.map(s => (
