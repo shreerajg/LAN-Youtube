@@ -83,7 +83,7 @@ Access at `http://localhost:5173` — proxies API calls to FastAPI on port 8000.
 | **History** | View your watch history |
 | **Files** | View all files on your LAN |
 ---
-
+fiasjkfjkad
 ## ⌨️ Player Keyboard Shortcuts
 
 | Key | Action |
