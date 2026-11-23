@@ -57,7 +57,7 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
     return (
         <>
             <header className="sticky top-0 z-50 pt-2 sm:pt-4 pb-2 transition-all duration-500">
-                <div className={`mx-auto transition-all duration-500 flex items-center gap-4 ${scrolled ? 'max-w-6xl rounded-2xl glass border border-white/10 shadow-2xl shadow-violet-900/30 px-4 py-2' : 'max-w-screen-2xl px-4 sm:px-6 py-2 bg-transparent'}`}>
+                <div className={`mx-auto transition-all duration-500 flex items-center gap-4 ${scrolled ? 'max-w-screen-2xl flex-wrap justify-center rounded-2xl glass border border-white/10 shadow-2xl shadow-violet-900/30 px-4 py-2' : 'max-w-screen-2xl px-4 sm:px-6 py-2 bg-transparent'}`}>
                     {/* Logo */}
                     <MotionLink whileTap={{ scale: 0.95 }} to="/" className="flex items-center gap-2.5 shrink-0 group">
                         <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 via-violet-500 to-cyan-500
@@ -81,7 +81,7 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
 
                     {/* Search */}
                     {isHome && (
-                        <div className="flex-1 max-w-xl relative">
+                        <div className="flex-1 min-w-0 max-w-xl relative">
                             <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500"
                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -113,10 +113,10 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
                         </div>
                     )}
 
-                    <div className="fixed bottom-0 left-0 right-0 bg-[#0d0d1f]/95 backdrop-blur-md border-t border-violet-500/20 p-2 sm:p-0 flex items-center gap-2 overflow-x-auto sm:static sm:bg-transparent sm:backdrop-blur-none sm:border-none sm:justify-start sm:overflow-visible sm:ml-auto shrink-0 z-50 pb-safe pb-4 sm:pb-0 hide-scrollbar px-2 sm:px-0">
+                    <div className={`fixed bottom-0 left-0 right-0 bg-[#0d0d1f]/95 backdrop-blur-md border-t border-violet-500/20 p-2 sm:p-0 flex items-center gap-2 overflow-x-auto sm:static sm:bg-transparent sm:backdrop-blur-none sm:border-none sm:overflow-visible sm:min-w-0 sm:[&>*]:shrink-0 sm:[&>a]:whitespace-nowrap sm:[&>button]:whitespace-nowrap z-50 pb-safe pb-4 sm:pb-0 hide-scrollbar px-2 sm:px-0 ${scrolled ? 'sm:basis-full sm:justify-center sm:ml-0 sm:flex-none' : 'sm:ml-auto sm:flex-1 sm:justify-start'}`}>
                         {/* Stats chips */}
                         {stats && (
-                            <div className="hidden lg:flex items-center gap-1.5">
+                            <div className={`${scrolled ? 'hidden' : 'hidden lg:flex'} items-center gap-1.5 shrink-0">
                                 <div className="tooltip-wrap">
                                     <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-xs cursor-default">
                                         <span className="text-violet-400 font-bold">{stats.total_videos}</span>
