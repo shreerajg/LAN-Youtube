@@ -12,7 +12,6 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
     const [query, setQuery] = useState('')
     const [stats, setStats] = useState(null)
     const [showFolderMgr, setShowFolderMgr] = useState(false)
-    const [showPlaylistMgr, setShowPlaylistMgr] = useState(false)
     const [scrolled, setScrolled] = useState(false)
     const location = useLocation()
     const isHome = location.pathname === '/'
@@ -249,10 +248,7 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
 
                         <motion.button
                             whileTap={{ scale: 0.95 }}
-                            onClick={() => setShowPlaylistMgr(true)}
-                            className="flex items-center justify-center gap-2 px-3 py-2.5 sm:px-4 text-sm font-semibold rounded-xl
-                                bg-cyan-600/15 text-cyan-400 border border-cyan-500/15 hover:bg-cyan-600/25 
-                                hover:border-cyan-500/30 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/10 shrink-0"
+                            className="hidden"
                         >
                             <svg className="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -271,11 +267,6 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
                 />
             )}
 
-            {showPlaylistMgr && (
-                <PlaylistManager
-                    onClose={() => setShowPlaylistMgr(false)}
-                />
-            )}
         </>
     )
 }
