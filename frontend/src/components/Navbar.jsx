@@ -113,10 +113,10 @@ export default function Navbar({ onSearch, onLibraryRefresh }) {
                         </div>
                     )}
 
-                    <div className={`fixed bottom-0 left-0 right-0 bg-[#0d0d1f]/95 backdrop-blur-md border-t border-violet-500/20 p-2 sm:p-0 flex items-center gap-2 overflow-x-auto sm:static sm:bg-transparent sm:backdrop-blur-none sm:border-none sm:overflow-visible sm:min-w-0 sm:[&>*]:shrink-0 sm:[&>a]:whitespace-nowrap sm:[&>button]:whitespace-nowrap z-50 pb-safe pb-4 sm:pb-0 hide-scrollbar px-2 sm:px-0 ${scrolled ? 'sm:basis-full sm:justify-center sm:ml-0 sm:flex-none' : 'sm:ml-auto sm:flex-1 sm:justify-start'}`}>
+                    <div className={`fixed bottom-0 left-0 right-0 bg-[#0d0d1f]/95 backdrop-blur-md border-t border-violet-500/20 p-2 sm:p-0 flex items-center gap-2 overflow-x-auto sm:static sm:bg-transparent sm:backdrop-blur-none sm:border-none sm:overflow-visible sm:min-w-0 sm:flex-wrap sm:[&>*]:shrink-0 sm:[&>a]:whitespace-nowrap sm:[&>button]:whitespace-nowrap z-50 pb-safe pb-4 sm:pb-0 hide-scrollbar px-2 sm:px-0 ${scrolled ? 'sm:basis-full sm:justify-center sm:ml-0 sm:flex-none' : 'sm:ml-auto sm:flex-1 sm:justify-start'}`}>
                         {/* Stats chips */}
                         {stats && (
-                            <div className={`${scrolled ? 'hidden' : 'hidden lg:flex'} items-center gap-1.5 shrink-0">
+                            <div className={`${scrolled ? 'hidden' : 'hidden lg:flex'} items-center gap-1.5 shrink-0`}>
                                 <div className="tooltip-wrap">
                                     <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-xs cursor-default">
                                         <span className="text-violet-400 font-bold">{stats.total_videos}</span>
