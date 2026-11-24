@@ -5,6 +5,7 @@ Produces high-quality JPEG thumbnails at 1280x720 resolution.
 import subprocess
 import os
 import shutil
+import hashlib
 
 THUMB_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "thumbnails")
 os.makedirs(THUMB_DIR, exist_ok=True)
@@ -31,13 +32,25 @@ def get_duration(video_path: str) -> float:
         return 0.0
 
 
-def generate_thumbnail(video_path: str, video_id: int) -> str | None:
+def thumbnail_path_for(video_path: str) -> str:
+    """Return a stable thumbnail path unique to this local video file."""
+    path = os.path.normcase(os.path.realpath(video_path))
+    try:
+        stat = os.stat(video_path)
+        identity = f"{path}:{stat.st_size}:{stat.st_mtime_ns}"
+    except OSError:
+        identity = path
+    key = hashlib.sha256(identity.encode("utf-8", errors="surrogatepass")).hexdigest()
+    return os.path.join(THUMB_DIR, f"{key}.jpg")
+
+
+def generate_thumbnail(video_path: str) -> str | None:
     """
     Extract a high-quality frame at 10% of duration.
     Returns the absolute path of the saved thumbnail, or None on failure.
     """
-    thumb_path = os.path.join(THUMB_DIR, f"{video_id}.jpg")
-    
+    thumb_path = thumbnail_path_for(video_path)
+
     if os.path.exists(thumb_path):
         return thumb_path
 

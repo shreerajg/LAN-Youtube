@@ -7,7 +7,7 @@ import os
 import subprocess
 from datetime import datetime
 from database import SessionLocal, Video, WatchedFolder
-from thumbnailer import generate_thumbnail, get_duration
+from thumbnailer import generate_thumbnail, get_duration, thumbnail_path_for
 
 DEFAULT_MEDIA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "media")
 SUPPORTED_EXTS = {".mp4", ".mkv", ".webm", ".avi", ".mov", ".m4v", ".ts", ".flv"}
@@ -65,7 +65,10 @@ def scan_library() -> dict:
                 available_folder_ids.add(w.id)
 
         # Build existing path map: abs_path -> video_id
-        existing = {row.path: row.id for row in db.query(Video).with_entities(Video.path, Video.id).all()}
+        existing = {
+            row.path: (row.id, row.thumbnail_path)
+            for row in db.query(Video).with_entities(Video.path, Video.id, Video.thumbnail_path).all()
+        }
         found_paths = set()
 
         added = 0
@@ -83,6 +86,15 @@ def scan_library() -> dict:
                     found_paths.add(abs_path)
 
                     if abs_path in existing:
+                        video_id, saved_thumbnail = existing[abs_path]
+                        expected_thumbnail = thumbnail_path_for(abs_path)
+                        if saved_thumbnail != expected_thumbnail or not os.path.isfile(expected_thumbnail):
+                            thumb = generate_thumbnail(abs_path)
+                            db.query(Video).filter(Video.id == video_id).update(
+                                {Video.thumbnail_path: thumb}
+                            )
+                            db.commit()
+                            existing[abs_path] = (video_id, thumb)
                         skipped += 1
                         continue
 
@@ -111,7 +123,7 @@ def scan_library() -> dict:
                         db.add(video)
                         db.flush()
 
-                        thumb = generate_thumbnail(abs_path, video.id)
+                        thumb = generate_thumbnail(abs_path)
                         video.thumbnail_path = thumb
                         db.add(video)
                         db.commit()
