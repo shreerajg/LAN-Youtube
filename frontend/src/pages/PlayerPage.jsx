@@ -305,6 +305,8 @@ export default function PlayerPage() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [theatreMode, setTheatreMode] = useState(false)
+    const [isPlaying, setIsPlaying] = useState(false)
+    const [playbackError, setPlaybackError] = useState('')
     const [autoPlay, setAutoPlay] = useState(() => localStorage.getItem('phantom_autoplay') === 'true')
     const [shortcutFeedback, setShortcutFeedback] = useState(null)
     const [pipActive, setPipActive] = useState(false)
@@ -387,6 +389,9 @@ export default function PlayerPage() {
     useEffect(() => {
         if (!video || !videoRef.current) return
 
+        setIsPlaying(false)
+        setPlaybackError('')
+
         if (playerRef.current) {
             try { playerRef.current.destroy() } catch { }
         }
@@ -396,6 +401,7 @@ export default function PlayerPage() {
         const savedMuted = localStorage.getItem(MUTED_KEY) === 'true'
 
         const options = {
+            ratio: '16:9',
             controls: [
                 'play-large', 'rewind', 'play', 'fast-forward', 'progress',
                 'current-time', 'duration', 'mute', 'volume',
@@ -674,14 +680,38 @@ export default function PlayerPage() {
                             style={{ background: `rgb(${ambientColor})`, transition: 'opacity 0.8s ease' }}
                         />
                     )}
-                    <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-violet-900/40 ring-1 ring-violet-500/10">
+                    <div className="player-frame relative aspect-video rounded-2xl overflow-hidden shadow-2xl shadow-violet-900/40 ring-1 ring-violet-500/10">
                         <video
                             ref={videoRef}
                             id={`player-${id}`}
                             className="w-full"
+                            src={/\.(mkv|avi)$/i.test(video.filename) ? undefined : getStreamUrl(id)}
+                            poster={video.thumbnail_url}
+                            controls
                             playsInline
                             preload="auto"
+                            onPlaying={() => { setIsPlaying(true); setPlaybackError('') }}
+                            onPause={() => setIsPlaying(false)}
+                            onError={() => setPlaybackError('The video stream could not be decoded. Check that the file is accessible and try again.')}
                         />
+                        {!isPlaying && (
+                            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-black/20 pointer-events-none">
+                                <button
+                                    type="button"
+                                    onClick={event => {
+                                        event.stopPropagation()
+                                        videoRef.current?.play().catch(error => setPlaybackError(error.message || 'Playback could not start.'))
+                                    }}
+                                    className="pointer-events-auto flex h-16 w-16 items-center justify-center rounded-full bg-violet-600/90 text-white shadow-xl shadow-violet-950/50 transition hover:scale-110 hover:bg-violet-500"
+                                    aria-label="Play video"
+                                >
+                                    <svg className="ml-1 h-7 w-7" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                        <path d="M8 5v14l11-7z" />
+                                    </svg>
+                                </button>
+                                {playbackError && <p role="alert" className="pointer-events-auto max-w-md rounded-lg bg-black/80 px-4 py-2 text-center text-sm text-red-200">{playbackError}</p>}
+                            </div>
+                        )}
                         <AnimatePresence>
                             {shortcutFeedback && (
                                 <motion.div
