@@ -7,7 +7,7 @@ A high-performance, self-hosted media server for your local network. Stream your
 
 ## 🚀 Quick Start (Windows)
 
-> **Requirements:** Python 3.9+, Node.js 18+, FFmpeg (for thumbnails)
+> **Requirements:** Python 3.10+, Node.js 20+, FFmpeg (for thumbnails)
 
 **Double-click `start.bat`** — it installs everything and launches the server automatically.
 
@@ -36,7 +36,7 @@ LAN YOUTUBE/
 
 > **Tip:** Subfolders become **categories** in the UI (e.g., `Movies/`, `Shows/`)
 
-After dropping files, click the **"Scan Library"** button in the top-right of the UI. The server also auto-scans on every startup.
+After dropping files, click the **"Scan Library"** button in the top-right of the UI. The server also auto-scans on every startup. Library data and generated thumbnails stay local to each computer; add your own watched folders on each machine.
 
 ---
 
@@ -83,7 +83,6 @@ Access at `http://localhost:5173` — proxies API calls to FastAPI on port 8000.
 | **History** | View your watch history |
 | **Files** | View all files on your LAN |
 ---
-fiasjkfjkad
 ## ⌨️ Player Keyboard Shortcuts
 
 | Key | Action |

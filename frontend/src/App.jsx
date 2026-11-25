@@ -1,14 +1,15 @@
-import React, { useEffect } from 'react'
+import React, { Suspense, lazy, useEffect } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { sendHeartbeat } from './api'
-import HomePage from './pages/HomePage'
-import PlayerPage from './pages/PlayerPage'
-import HistoryPage from './pages/HistoryPage'
-import FilesPage from './pages/FilesPage'
-import ChatPage from './pages/ChatPage'
-import LANDashboard from './pages/LANDashboard'
-import StatsPage from './pages/StatsPage'
+
+const HomePage = lazy(() => import('./pages/HomePage'))
+const PlayerPage = lazy(() => import('./pages/PlayerPage'))
+const HistoryPage = lazy(() => import('./pages/HistoryPage'))
+const FilesPage = lazy(() => import('./pages/FilesPage'))
+const ChatPage = lazy(() => import('./pages/ChatPage'))
+const LANDashboard = lazy(() => import('./pages/LANDashboard'))
+const StatsPage = lazy(() => import('./pages/StatsPage'))
 import { ToastProvider } from './components/Toast'
 
 function PageWrapper({ children }) {
@@ -66,16 +67,18 @@ export default function App() {
     return (
         <ToastProvider>
             <AnimatePresence mode="wait">
-                <Routes location={location} key={location.pathname}>
-                    <Route path="/" element={<PageWrapper><HomePage /></PageWrapper>} />
-                    <Route path="/player/:id" element={<PageWrapper><PlayerPage /></PageWrapper>} />
-                    <Route path="/history" element={<PageWrapper><HistoryPage /></PageWrapper>} />
-                    <Route path="/files" element={<PageWrapper><FilesPage /></PageWrapper>} />
-                    <Route path="/chat" element={<PageWrapper><ChatPage /></PageWrapper>} />
-                    <Route path="/lan" element={<PageWrapper><LANDashboard /></PageWrapper>} />
-                    <Route path="/stats" element={<PageWrapper><StatsPage /></PageWrapper>} />
-                    <Route path="*" element={<PageWrapper><HomePage /></PageWrapper>} />
-                </Routes>
+                <Suspense fallback={<div className="min-h-screen grid place-items-center text-slate-400">Loading…</div>}>
+                    <Routes location={location} key={location.pathname}>
+                        <Route path="/" element={<PageWrapper><HomePage /></PageWrapper>} />
+                        <Route path="/player/:id" element={<PageWrapper><PlayerPage /></PageWrapper>} />
+                        <Route path="/history" element={<PageWrapper><HistoryPage /></PageWrapper>} />
+                        <Route path="/files" element={<PageWrapper><FilesPage /></PageWrapper>} />
+                        <Route path="/chat" element={<PageWrapper><ChatPage /></PageWrapper>} />
+                        <Route path="/lan" element={<PageWrapper><LANDashboard /></PageWrapper>} />
+                        <Route path="/stats" element={<PageWrapper><StatsPage /></PageWrapper>} />
+                        <Route path="*" element={<PageWrapper><HomePage /></PageWrapper>} />
+                    </Routes>
+                </Suspense>
             </AnimatePresence>
             <SystemStatusFooter />
         </ToastProvider>

@@ -23,7 +23,7 @@ pip3 install pystray Pillow -q
 # Build frontend
 echo "[2/3] Building frontend..."
 cd "$SCRIPT_DIR/frontend"
-[ ! -d "node_modules" ] && npm install --silent
+npm install --silent
 npm run build
 
 # Start server in system tray
