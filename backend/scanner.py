@@ -29,12 +29,10 @@ def get_resolution(video_path: str) -> str | None:
             timeout=15,
         )
         out = result.stdout.decode().strip()
-        # out should be like "1920x1080"
-        if "x" in out and out.replace("x", "").replace("\n", "").isdigit() is False:
-            # validate it looks like NxN
-            parts = out.split("x")
-            if len(parts) == 2 and parts[0].isdigit() and parts[1].isdigit():
-                return out
+        # out should look like "1920x1080"
+        parts = out.split("x")
+        if len(parts) == 2 and parts[0].isdigit() and parts[1].isdigit():
+            return out
         return None
     except Exception:
         return None
@@ -95,6 +93,15 @@ def scan_library() -> dict:
                             )
                             db.commit()
                             existing[abs_path] = (video_id, thumb)
+                        # Backfill resolution for videos indexed before the scan fix.
+                        row = db.query(Video.resolution).filter(Video.id == video_id).first()
+                        if not row or not row[0]:
+                            res = get_resolution(abs_path)
+                            if res:
+                                db.query(Video).filter(Video.id == video_id).update(
+                                    {Video.resolution: res}
+                                )
+                                db.commit()
                         skipped += 1
                         continue
 

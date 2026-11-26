@@ -485,8 +485,11 @@ async def serve_hls_playlist(video_id: int, db: Session = Depends(get_db)):
 
 @app.get("/api/hls/{video_id}/{file_name}")
 async def serve_hls_segment(video_id: int, file_name: str):
-    path = os.path.join(HLS_DIR, str(video_id), file_name)
-    if not os.path.exists(path):
+    if not file_name or "/" in file_name or "\\" in file_name or ".." in file_name:
+        raise HTTPException(status_code=400, detail="Invalid segment name")
+    base = os.path.abspath(os.path.join(HLS_DIR, str(video_id)))
+    path = os.path.abspath(os.path.join(base, file_name))
+    if os.path.commonpath([base, path]) != base or not os.path.exists(path):
         raise HTTPException(status_code=404)
     return FileResponse(path)
 
